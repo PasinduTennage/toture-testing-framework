@@ -5,7 +5,7 @@ import os
 
 class Local:
     def __init__(self, ports, threshold, test_time, view_time=0, benchmark_type="none", epoch_time=0):
-        self.benchmark_type = benchmark_type # {none, delay, loss, duplicate, reorder, corrupt, ddoS, parition}
+        self.benchmark_type = benchmark_type # {none, delay, loss, duplicate, reorder, corrupt, parition}
         self.ports = ports                   # list of all local TCP ports to attack
         self.threshold = threshold           # how many nodes are attacked at the same time
         self.test_time = test_time           # test duration in seconds
@@ -15,14 +15,14 @@ class Local:
     def attack(self):
         if self.benchmark_type == "none": 
             self.__attack_none()
-        elif self.benchmark_type == "delay" or self.benchmark_type == "loss" or self.benchmark_type == "duplicate" or self.benchmark_type == "reorder" or self.benchmark_type == "corrupt": 
-            self.__attack_qc()
-        elif self.benchmark_type == "ddoS":
-            self.attack_DdoS()
-        elif self.benchmark_type == "partition":
-            self.attack_partition()        
+        elif self.benchmark_type == "delay" or self.benchmark_type == "loss" or self.benchmark_type == "duplicate" or self.benchmark_type == "reorder" or self.benchmark_type == "corrupt" or self.benchmark_type == "partition": 
+            self.__attack_qc()   
         else:
-            SystemExit("Invalid benchmark type")                        
+            SystemExit("Invalid benchmark type")     
+
+    def stopAttack(self):
+        self.__execute("tc qdisc del dev lo root")
+        return                   
         
     # sleep for self.time seconds duration
     def __attack_none(self):
@@ -48,7 +48,6 @@ class Local:
                     start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay"+str(int(self.view_time*1.5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
                 elif self.benchmark_type == "parition":
                     start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay"+str(int(self.view_time*5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
-                
                 elif self.benchmark_type == "loss":
                     start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem loss 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
                 elif self.benchmark_type == "duplicate":
