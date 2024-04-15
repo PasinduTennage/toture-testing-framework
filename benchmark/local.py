@@ -96,8 +96,9 @@ class Local:
             for t in threads:
                 t.join()
 
-            # wait for an epoch time
-            time.sleep(self.epoch_time)
+            #  sleep for epoch_time number of miliseconds
+            time.sleep(self.epoch_time/1000)
+            
 
             # stop the attack on all nodes
             self.stopAttack()
