@@ -2,15 +2,36 @@ import time
 import random
 import threading
 import os
+import psutil
+
+def get_open_ports(server_name):
+    # Get all processes
+    all_processes = psutil.process_iter(['pid', 'name'])
+
+    # Filter processes based on server_name
+    server_processes = [p.info['pid'] for p in all_processes if p.info['name'] == server_name]
+
+    # For each server process, get the set of open ports
+    open_ports = []
+    for pid in server_processes:
+        process = psutil.Process(pid)
+        connections = process.connections()
+        ports = [conn.laddr.port for conn in connections if conn.status == 'LISTEN']
+        open_ports.append(ports)
+
+    return open_ports
+
+print(get_open_ports("replica"))
+
 
 class Local:
-    def __init__(self, ports, threshold, test_time, view_time=0, benchmark_type="none", epoch_time=0):
-        self.benchmark_type = benchmark_type # {none, delay, loss, duplicate, reorder, corrupt, parition}
-        self.ports = ports                   # list of all local TCP ports to attack
-        self.threshold = threshold           # how many nodes are attacked at the same time
-        self.test_time = test_time           # test duration in seconds
-        self.view_time = view_time           # view change timeout in milliseconds
-        self.epoch_time = epoch_time         # epoch timeout in milliseconds -- threshold number of nodes are attacked for epoch time
+    def __init__(self, server_name, threshold, test_time, view_time=0, benchmark_type="none", epoch_time=0):
+        self.benchmark_type = benchmark_type                        # {none, delay, loss, duplicate, reorder, corrupt, parition}
+        self.ports = get_open_ports(server_name)                    # list of all local TCP ports to attack
+        self.threshold = threshold                                  # how many nodes are attacked at the same time
+        self.test_time = test_time                                  # test duration in seconds
+        self.view_time = view_time                                  # view change timeout in milliseconds
+        self.epoch_time = epoch_time                                # epoch timeout in milliseconds -- threshold number of nodes are attacked for epoch time
 
     def attack(self):
         if self.benchmark_type == "none": 
@@ -40,28 +61,28 @@ class Local:
             # for each node in attack nodes, concurrently start attacking it using a thread per node, and then have a barrier to wait for all threads to finish
             n = len(attack_nodes)  # Number of threads
             barrier = threading.Barrier(n)
-
             threads = []
             for i in range(n):
-                start_str = ""
-                if self.benchmark_type == "delay":
-                    start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay"+str(int(self.view_time*1.5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
-                elif self.benchmark_type == "parition":
-                    start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay"+str(int(self.view_time*5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
-                elif self.benchmark_type == "loss":
-                    start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem loss 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
-                elif self.benchmark_type == "duplicate":
-                    start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem duplicate 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
-                elif self.benchmark_type == "reorder":
-                    start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem reorder 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"
-                elif self.benchmark_type == "corrupt":
-                    start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem corrupt 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i])+" 0xffff flowid 1:3"            
-                else:
-                    SystemExit("Invalid benchmark type")
+                for j in range(len(attack_nodes[i])):
+                    start_str = ""
+                    if self.benchmark_type == "delay":
+                        start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay"+str(int(self.view_time*1.5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
+                    elif self.benchmark_type == "parition":
+                        start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay"+str(int(self.view_time*5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
+                    elif self.benchmark_type == "loss":
+                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem loss 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
+                    elif self.benchmark_type == "duplicate":
+                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem duplicate 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
+                    elif self.benchmark_type == "reorder":
+                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem reorder 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
+                    elif self.benchmark_type == "corrupt":
+                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem corrupt 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"            
+                    else:
+                        SystemExit("Invalid benchmark type")
 
-                t = threading.Thread(target=self.__execute, args=(start_str,))
-                threads.append(t)
-                t.start()
+                    t = threading.Thread(target=self.__execute, args=(start_str,))
+                    threads.append(t)
+                    t.start()
 
             # Wait for all threads to start the attack
             for t in threads:
