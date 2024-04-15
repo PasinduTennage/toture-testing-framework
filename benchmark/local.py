@@ -42,7 +42,7 @@ class Local:
 
     # external interface to start the attack
     def attack(self):
-        if self.benchmark_type == "none": 
+        if self.benchmark_type == "none":
             self.__attack_none()
         elif self.benchmark_type == "delay" or self.benchmark_type == "loss" or self.benchmark_type == "duplicate" or self.benchmark_type == "reorder" or self.benchmark_type == "corrupt" or self.benchmark_type == "partition": 
             self.__attack_qc()   
@@ -51,22 +51,28 @@ class Local:
     
     # external interface to stop the attack by removing all qc rules
     def stopAttack(self):
+        print("stopping attack")
         self.__execute("tc qdisc del dev lo root")
         return                   
         
     # sleep for self.time seconds duration
     def __attack_none(self):
+        print("Running none attack")
         time.sleep(self.test_time)
+        print("None attack completed")
         return
         
         
     # attack threshold number of nodes at the same time, and keep it for epoch_time, change the set of nodes every epoch_time
     def __attack_qc(self):
+        print("running attack "+self.benchmark_type)
+        
         # run for test_time
         start_time = time.time()
         while time.time() - start_time < self.test_time:
             # randomly select threshold number of processes from the all available replicas and make the attack_nodes array 
             attack_nodes = random.sample(self.ports, self.threshold)
+            print("attack ports are: ", attack_nodes)
             # for each node in attack nodes, concurrently start attacking it using a thread per port of a replica, and then have a barrier to wait for all threads to finish
             n = len(attack_nodes)  # number of processes to attack
             threads = []
