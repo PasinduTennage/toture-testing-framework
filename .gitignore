@@ -1,0 +1,11 @@
+toture/bin/
+vendor/
+
+*.log
+*.csv
+*.pdf
+*.png
+*.pyc
+*.txt
+*.zip
+*.pyc
