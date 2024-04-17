@@ -75,32 +75,29 @@ class Local:
             print("attack ports are: ", attack_nodes)
             # for each node in attack nodes, concurrently start attacking it using a thread per port of a replica, and then have a barrier to wait for all threads to finish
             n = len(attack_nodes)  # number of processes to attack
-            threads = []
+            start_str = ""
+            if self.benchmark_type == "delay":
+                start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay "+str(int(self.view_time*1.5))+"ms"
+            elif self.benchmark_type == "parition":
+                start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay" +str(int(self.view_time*5))+"ms"
+            elif self.benchmark_type == "loss":
+                start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem loss 25%"
+            elif self.benchmark_type == "duplicate":
+                start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem duplicate 25%"
+            elif self.benchmark_type == "reorder":
+                start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem reorder 25%"
+            elif self.benchmark_type == "corrupt":
+                start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem corrupt 25%"            
+            else:
+                SystemExit("Invalid benchmark type")
+
             for i in range(n):
                 for j in range(len(attack_nodes[i])):
-                    start_str = ""
-                    if self.benchmark_type == "delay":
-                        start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay "+str(int(self.view_time*1.5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
-                    elif self.benchmark_type == "parition":
-                        start_str = "tc qdisc add dev lo root handle 1: prio; tc qdisc add dev lo parent 1:3 handle 30: netem delay" +str(int(self.view_time*5))+"ms; tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
-                    elif self.benchmark_type == "loss":
-                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem loss 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
-                    elif self.benchmark_type == "duplicate":
-                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem duplicate 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
-                    elif self.benchmark_type == "reorder":
-                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem reorder 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
-                    elif self.benchmark_type == "corrupt":
-                        start_str = "tc qdisc add dev lo root handle 1: prio;  tc qdisc add dev lo parent 1:3 handle 30: netem corrupt 25%;  tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"            
-                    else:
-                        SystemExit("Invalid benchmark type")
-
-                    t = threading.Thread(target=self.__execute, args=(start_str,))
-                    threads.append(t)
-                    t.start()
-
-            # Wait for all threads to start the attack
-            for t in threads:
-                t.join()
+                    start_str = start_str + ";tc filter add dev lo protocol ip parent 1:0 prio 3 u32 match ip sport "+str(attack_nodes[i][j])+" 0xffff flowid 1:3"
+            print(start_str)        
+            t = threading.Thread(target=self.__execute, args=(start_str,))
+            
+            t.start()
 
             #  sleep for epoch_time number of miliseconds
             time.sleep(self.epoch_time/1000)
