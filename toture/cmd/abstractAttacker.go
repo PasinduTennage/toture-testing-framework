@@ -19,4 +19,7 @@ type Attacker interface {
 
 	Halt(pId int) error      // halt the process
 	ResetHalt(pId int) error // reset the halt
+
+	StartAttack() error // start the attack
+	StopAttack() error  // stop the attack
 }

@@ -50,3 +50,11 @@ func (lna *RemoteNetEmAttacker) Halt(pId int) error {
 func (lna *RemoteNetEmAttacker) ResetHalt(pId int) error {
 	return nil
 }
+
+func (lna *RemoteNetEmAttacker) StartAttack() error {
+	return nil
+}
+
+func (lna *RemoteNetEmAttacker) StopAttack() error {
+	return nil
+}
