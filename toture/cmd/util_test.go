@@ -16,9 +16,9 @@ func Test_getProcessIds(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "chrome",
+			name: "sample",
 			args: args{
-				name: "chrome",
+				name: "systemd",
 			},
 			want:    nil,
 			wantErr: false,
@@ -26,34 +26,11 @@ func Test_getProcessIds(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getProcessIds(tt.args.name)
+			got, err := GetProcessIds(tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getProcessIds() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			fmt.Printf("got: %v\n", got)
-		})
-	}
-}
-
-func Test_getPorts(t *testing.T) {
-	type args struct {
-		pIds []int
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "chrome",
-			args: args{
-				pIds: []int{2408, 1631, 23079},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := getPorts(tt.args.pIds)
 			fmt.Printf("got: %v\n", got)
 		})
 	}

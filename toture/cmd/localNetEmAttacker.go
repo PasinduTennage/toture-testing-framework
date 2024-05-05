@@ -3,7 +3,7 @@ package cmd
 type LocalNetEmAttacker struct {
 	replicaName   string
 	processIds    []int
-	ports         []int
+	ports         [][]int
 	delay         int
 	lossRate      int
 	duplicateRate int
@@ -18,9 +18,9 @@ func NewLocalNetEmAttacker(
 	duplicateRate int,
 	reorderRate int,
 	corruptRate int,
-	ports []int) *LocalNetEmAttacker {
+	ports [][]int) *LocalNetEmAttacker {
 
-	ids, err := getProcessIds(replicaName)
+	ids, err := GetProcessIds(replicaName)
 	if err != nil {
 		panic("should not happen")
 	}
@@ -29,11 +29,11 @@ func NewLocalNetEmAttacker(
 		replicaName:   replicaName,
 		processIds:    ids,
 		ports:         ports,
-		delay:         0,
-		lossRate:      0,
-		duplicateRate: 0,
-		reorderRate:   0,
-		corruptRate:   0,
+		delay:         delay,
+		lossRate:      lossRate,
+		duplicateRate: duplicateRate,
+		reorderRate:   reorderRate,
+		corruptRate:   corruptRate,
 	}
 
 	return &lNEA

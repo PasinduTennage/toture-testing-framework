@@ -2,13 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"net"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
 // get the process ids with the name
-func getProcessIds(name string) ([]int, error) {
+func GetProcessIds(name string) ([]int, error) {
 	// Execute 'pgrep' command to find process IDs by name
 	cmd := exec.Command("pgrep", name)
 	output, err := cmd.Output()
@@ -32,40 +34,39 @@ func getProcessIds(name string) ([]int, error) {
 	return pids, nil
 }
 
-// get the port associated with the given process IDs (we assume one port per process)
-func getPorts(pIds []int) []int {
-	var ports []int
+// run a set of dummy threads with the given port, and return the channel to stop the processes
+func RunDummyThreads(ports []int) ([]chan bool, int) {
 
-	for _, pid := range pIds {
-		// Run netstat command to get network connections
-		cmd := exec.Command("netstat", "-anp")
-		out, err := cmd.Output()
-		if err != nil {
-			fmt.Println("Error running netstat command:", err)
-			continue
-		}
+	chans := []chan bool{}
 
-		// Parse the output to get ports associated with the given PID
-		lines := strings.Split(string(out), "\n")
-		line := lines[0]
-		fields := strings.Fields(line)
-		if len(fields) > 6 && strings.HasPrefix(fields[6], strconv.Itoa(pid)+"/") {
-			s := strings.Split(fields[3], ":")
-			if len(s) < 2 {
-				continue
+	for i := 0; i < len(ports); i++ {
+		nC := make(chan bool)
+		chans = append(chans, nC)
+		go func(fin chan bool, p int) {
+			Listener, err := net.Listen("tcp", "0.0.0.0"+":"+strconv.Itoa(p))
+			if err != nil {
+				panic(err.Error())
+				return
 			}
-			// Extract port number
-			port := strings.Split(fields[3], ":")[1]
-			portNum, _ := strconv.Atoi(port)
-			ports = append(ports, portNum)
-		}
+			fmt.Printf("Listening on port %d\n", p)
+			for true {
+				select {
+				case <-fin:
+					if Listener != nil {
+						Listener.Close()
+					}
+					fmt.Printf("closed port %d\n", p)
+					return
+				default:
+					if Listener != nil {
 
+					}
+					//fmt.Printf("running dummy thread on port %d\n", p)
+					break
+				}
+			}
+		}(nC, ports[i])
 	}
-
-	return ports
-}
-
-// run a dummy process with the given name and open port, and return the process ID, and a channel to stop the process
-func runDummyProcess(name string, port int) int {
-
+	fmt.Printf("pid: %v\n", os.Getpid())
+	return chans, os.Getpid()
 }
