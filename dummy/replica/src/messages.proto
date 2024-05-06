@@ -7,6 +7,6 @@ option go_package = "dummy/";
 
 message Message {
 
-  int64 index = 1;
+  string index = 1;
   string message = 2;
 }

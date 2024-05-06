@@ -5,58 +5,51 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
-	"raxos/common"
-	"raxos/proto"
 	"strconv"
+	"time"
 )
 
 // start listening to the proxy tcp connection, and setup all outgoing wires
 
 func (pr *Proxy) NetworkInit() {
-	//pr.debug("proxy network init", -1)
-	pr.startOutgoingLinks()
-	go pr.waitForConnections()
+	pr.waitForConnections()
 }
 
 /*
-	fill the RPC table by assigning a unique id to each message type
-*/
-
-func (pr *Proxy) RegisterRPC(msgObj proto.Serializable, code uint8) {
-	pr.rpcTable[code] = &common.RPCPair{code, msgObj}
-}
-
-/*
-	Listen on the server port for new connections
-	Each proxy receives connection from all clients
+	Listen on the server ports for new connections
 */
 
 func (pr *Proxy) waitForConnections() {
 
-	var b [4]byte
-	bs := b[:4]
-	//pr.debug("Listening to messages on "+pr.serverAddress, 0)
-	// listen to proxy port
-	pr.Listener, _ = net.Listen("tcp", pr.serverAddress)
+	for i := 0; i < len(pr.serverAddress); i++ {
 
-	for true {
-		conn, err := pr.Listener.Accept()
-		if err != nil {
-			fmt.Println("TCP accept error:", err)
-			panic(err)
-		}
-		if _, err := io.ReadFull(conn, bs); err != nil {
-			fmt.Println("Connection id reading error:", err)
-			panic(err)
-		}
-		id := int32(binary.LittleEndian.Uint16(bs))
-		//pr.debug("Received incoming tcp connection from "+strconv.Itoa(int(id)), -1)
+		go func(la string) {
 
-		pr.incomingClientReaders[int64(id)] = bufio.NewReader(conn)
-		go pr.connectionListener(pr.incomingClientReaders[int64(id)], id)
-		//pr.debug("Started listening to "+strconv.Itoa(int(id)), -1)
-		pr.connectToClient(id) // make a TCP connection with client id
+			var b [4]byte
+			bs := b[:4]
+
+			listener, _ := net.Listen("tcp", la)
+			pr.debug("Listening to messages on "+la, 0)
+
+			for true {
+				conn, err := listener.Accept()
+				if err != nil {
+					fmt.Println("TCP accept error:", err)
+					panic(err)
+				}
+				if _, err := io.ReadFull(conn, bs); err != nil {
+					fmt.Println("Connection id reading error:", err)
+					panic(err)
+				}
+				id := int32(binary.LittleEndian.Uint16(bs))
+				pr.debug("Received incoming tcp connection from "+strconv.Itoa(int(id)), -1)
+
+				go pr.connectionListener(bufio.NewReader(conn), id)
+				pr.debug("Started listening to "+strconv.Itoa(int(id)), -1)
+			}
+		}(pr.serverAddress[i])
 	}
 }
 
@@ -66,28 +59,14 @@ func (pr *Proxy) waitForConnections() {
 
 func (pr *Proxy) connectionListener(reader *bufio.Reader, id int32) {
 
-	var msgType uint8
 	var err error = nil
-
 	for true {
-		if msgType, err = reader.ReadByte(); err != nil {
-			//pr.debug("Error while reading code byte: the TCP connection was broken for "+strconv.Itoa(int(id)), 0)
+		obj := (&Message{}).New()
+		if err = obj.Unmarshal(reader); err != nil {
+			//pr.debug("Error while unmarshalling", 0)
 			return
 		}
-		if rpair, present := pr.rpcTable[msgType]; present {
-			obj := rpair.Obj.New()
-			if err = obj.Unmarshal(reader); err != nil {
-				//pr.debug("Error while unmarshalling", 0)
-				return
-			}
-			pr.incomingChan <- common.RPCPair{
-				Code: msgType,
-				Obj:  obj,
-			}
-		} else {
-			//pr.debug("Error: received unknown message type", 0)
-			return
-		}
+		pr.incomingChan <- &ReceivedMessage{message: obj, sender: id}
 	}
 }
 
@@ -95,72 +74,57 @@ func (pr *Proxy) connectionListener(reader *bufio.Reader, id int32) {
 	make a TCP connection to the client id
 */
 
-func (pr *Proxy) connectToClient(id int32) {
-	var b [4]byte
-	bs := b[:4]
-	for true {
-		conn, err := net.Dial("tcp", pr.clientAddrList[int64(id)])
-		if err == nil {
-			pr.outgoingClientWriters[int64(id)] = bufio.NewWriter(conn)
-			binary.LittleEndian.PutUint16(bs, uint16(pr.name))
-			_, err := conn.Write(bs)
-			if err != nil {
-				//pr.debug("Error connecting to client "+strconv.Itoa(int(id)), 0)
-				panic(err)
+func (pr *Proxy) ConnectToReplicas() {
+
+	for id, addresses := range pr.addrList {
+		for i := 0; i < len(addresses); i++ {
+			var b [4]byte
+			bs := b[:4]
+			for true {
+				conn, err := net.Dial("tcp", addresses[i])
+				if err == nil {
+					pr.outgoingWriters[id] = append(pr.outgoingWriters[id], bufio.NewWriter(conn))
+					binary.LittleEndian.PutUint16(bs, uint16(pr.name))
+					_, err := conn.Write(bs)
+					if err != nil {
+						//pr.debug("Error connecting to client "+strconv.Itoa(int(id)), 0)
+						panic(err)
+					}
+					pr.debug("Started outgoing tcp connection to "+addresses[i], 0)
+					break
+				} else {
+					time.Sleep(time.Duration(10) * time.Millisecond)
+				}
 			}
-			//pr.debug("Started outgoing tcp connection to client "+strconv.Itoa(int(id)), -1)
-			break
 		}
 	}
 
 }
 
 /*
-	write a message to the wire, first the message type is written and then the actual message
+	write a message to the wire
 */
 
-func (pr *Proxy) internalSendMessage(peer int64, msg *Message) {
+func (pr *Proxy) sendMessage(peer int64, msg *Message) {
 
-	pr.debug("proxy internal sending message to  "+strconv.Itoa(int(peer)), 0)
+	pr.debug("sending message to  "+strconv.Itoa(int(peer)), 0)
+
+	randomWriter := rand.Intn(len(pr.outgoingWriters[peer]))
 
 	var w *bufio.Writer
 
-	w = pr.outgoingWriters[peer]
-	pr.buffioWriterMutexes[peer].Lock()
+	w = pr.outgoingWriters[peer][randomWriter]
 
-	err := w.WriteByte(code)
+	err := msg.Marshal(w)
 	if err != nil {
-		//pr.debug("Error while writing byte", 0)
-		pr.buffioWriterMutexes[peer].Unlock()
-		return
-	}
-	err = msg.Marshal(w)
-	if err != nil {
-		//pr.debug("Error while marshalling", 0)
-		pr.buffioWriterMutexes[peer].Unlock()
+		pr.debug("Error while marshalling", 0)
 		return
 	}
 	err = w.Flush()
 	if err != nil {
-		//pr.debug("Error while flushing", 0)
-		pr.buffioWriterMutexes[peer].Unlock()
+		pr.debug("Error while flushing", 0)
 		return
 	}
-	pr.buffioWriterMutexes[peer].Unlock()
+	pr.debug("sent message to  "+strconv.Itoa(int(peer)), 1)
 
-	//pr.debug("proxy sent internal sending message to  "+strconv.Itoa(int(peer)), -1)
-
-}
-
-/*
-	adds a new out going message to the out going channel
-    note that the message object inside the RPC pair should be unique because the protobuf objects are not thread safe
-*/
-
-func (pr *Proxy) sendMessage(peer int64, rpcPair common.RPCPair) {
-	pr.outgoingMessageChan <- common.OutgoingRPC{
-		RpcPair: &rpcPair,
-		Peer:    peer,
-	}
-	//pr.debug("proxy added a new outgoing message  ", -1)
 }
