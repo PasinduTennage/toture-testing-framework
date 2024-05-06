@@ -1,0 +1,12 @@
+syntax = "proto3";
+option go_package = "dummy/";
+
+// this file defined the proto definitions of the messages that are used in dummy replica
+
+
+
+message Message {
+
+  int64 index = 1;
+  string message = 2;
+}
