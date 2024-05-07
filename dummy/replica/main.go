@@ -29,8 +29,8 @@ func main() {
 	time.Sleep(10 * time.Second)
 	proxyInstance.ConnectToReplicas()
 	time.Sleep(10 * time.Second)
-	proxyInstance.StartApplication()
 	proxyInstance.WriteStat()
+	proxyInstance.StartApplication()
 
 	/*to avoid exiting the main thread*/
 	for true {

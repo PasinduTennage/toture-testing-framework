@@ -13,7 +13,7 @@ import (
 func (pr *Proxy) printMemoryUsage() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	fmt.Printf("Total Memory Allocs = %v MiB\n", bToMb(m.TotalAlloc))
+	fmt.Printf("\nTotal Memory Allocs = %v MiB\n", bToMb(m.TotalAlloc))
 }
 
 func bToMb(b uint64) uint64 {
