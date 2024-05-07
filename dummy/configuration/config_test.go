@@ -19,7 +19,7 @@ func TestNewInstanceConfig(t *testing.T) {
 		{
 			name: "Test 1",
 			args: args{
-				fname: "/home/pasindu/Documents/toture-testing-consensus/dummy/configuration/local-config.txt",
+				fname: "/home/pasindu/Documents/toture-testing-consensus/dummy/configuration/local-config.cfg",
 				name:  1,
 			},
 			want: &InstanceConfig{
