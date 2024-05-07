@@ -17,6 +17,7 @@ type Proxy struct {
 
 	addrList        map[int64][]string        // map with the IP:port address of each remote replica
 	outgoingWriters map[int64][]*bufio.Writer // the ip ports of each remote replica
+	mutexes         map[int64][]*sync.Mutex   // the mutexes for each remote replica writer
 
 	serverAddress []string // listening address of self
 
@@ -55,6 +56,7 @@ func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugL
 		numReplicas:     len(cfg.Peers),
 		addrList:        make(map[int64][]string),
 		outgoingWriters: make(map[int64][]*bufio.Writer),
+		mutexes:         make(map[int64][]*sync.Mutex),
 		serverAddress:   []string{},
 		debugOn:         debugOn,
 		debugLevel:      debugLevel,
@@ -74,6 +76,7 @@ func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugL
 		if pr.name != int64(intName) {
 			pr.addrList[int64(intName)] = addresses
 			pr.outgoingWriters[int64(intName)] = make([]*bufio.Writer, 0)
+			pr.mutexes[int64(intName)] = make([]*sync.Mutex, 0)
 		}
 		if pr.name == int64(intName) {
 			pr.serverAddress = addresses

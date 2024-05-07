@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -85,6 +86,7 @@ func (pr *Proxy) ConnectToReplicas() {
 				conn, err := net.Dial("tcp", addresses[i])
 				if err == nil {
 					pr.outgoingWriters[id] = append(pr.outgoingWriters[id], bufio.NewWriter(conn))
+					pr.mutexes[id] = append(pr.mutexes[id], &sync.Mutex{})
 					binary.LittleEndian.PutUint16(bs, uint16(pr.name))
 					_, err := conn.Write(bs)
 					if err != nil {
@@ -113,20 +115,22 @@ func (pr *Proxy) sendMessage(peer int64, msg *Message) {
 
 	randomWriter := rand.Intn(len(pr.outgoingWriters[peer]))
 
-	var w *bufio.Writer
+	w := pr.outgoingWriters[peer][randomWriter]
+	m := pr.mutexes[peer][randomWriter]
 
-	w = pr.outgoingWriters[peer][randomWriter]
-
+	m.Lock()
 	err := msg.Marshal(w)
 	if err != nil {
 		pr.debug("Error while marshalling", 0)
+		m.Unlock()
 		return
 	}
 	err = w.Flush()
 	if err != nil {
 		pr.debug("Error while flushing", 0)
+		m.Unlock()
 		return
 	}
 	pr.debug("sent message to  "+strconv.Itoa(int(peer)), 1)
-
+	m.Unlock()
 }
