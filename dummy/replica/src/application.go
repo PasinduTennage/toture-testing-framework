@@ -14,7 +14,7 @@ func (pr *Proxy) handleMessage(message *Message, sender int32) {
 		pr.receivedLatency = append(pr.receivedLatency, time.Now().Sub(v.(Request).sentTime).Microseconds())
 		pr.sent.Delete(message.Index)
 
-		if time.Now().Sub(pr.lastStarTime).Seconds() > 1 {
+		if time.Now().Sub(pr.lastStarTime).Seconds() > 5 {
 			// print the average latency
 			avg := int64(0)
 			for _, v := range pr.receivedLatency {

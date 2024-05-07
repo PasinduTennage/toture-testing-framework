@@ -40,7 +40,7 @@ func (pr *Proxy) WriteStat() {
 		for true {
 			pr.printMemoryUsage()
 			pr.printCPUUsage()
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}()
 }
