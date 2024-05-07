@@ -22,7 +22,7 @@ func (pr *Proxy) handleMessage(message *Message, sender int32) {
 			}
 			avg = avg / int64(len(pr.receivedLatency))
 			fmt.Printf("Average latency: %d micro seconds\n", avg)
-			fmt.Printf("Average throughput: %d requests per second\n", float64(len(pr.receivedLatency))/(time.Now().Sub(pr.lastStarTime).Seconds()))
+			fmt.Printf("Average throughput: %v requests per second\n", float64(len(pr.receivedLatency))/(time.Now().Sub(pr.lastStarTime).Seconds()))
 			pr.lastStarTime = time.Now()
 			pr.receivedLatency = make([]int64, 0)
 		}
