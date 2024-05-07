@@ -26,8 +26,6 @@ func GetRealSizeOf(v interface{}) (int, error) {
 	return b.Len(), nil
 }
 
-// ClientBatch
-
 func (t *Message) Marshal(wire io.Writer) error {
 
 	data, err := proto.Marshal(t)
@@ -71,6 +69,7 @@ func (t *Message) Unmarshal(wire io.Reader) error {
 	}
 	return nil
 }
+
 func (t *Message) New() Serializable {
 	return new(Message)
 }

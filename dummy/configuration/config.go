@@ -11,7 +11,6 @@ import (
 	config.go defines the structs and methods to pass the configuration file, that contains the IP:ports of each replica
 */
 
-// ReplicaInstance describes a single  QuePaxa connection information
 type ReplicaInstance struct {
 	Name  string
 	IP    string
@@ -31,9 +30,14 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 
 	file, err := os.Open(fname)
 	if err != nil {
-		return nil, err
+		panic(err.Error())
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err.Error())
+		}
+	}(file)
 
 	var lines []string
 
@@ -48,7 +52,7 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 
 	// Check for any errors encountered during scanning
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		panic(err.Error())
 	}
 
 	// Iterate over each line

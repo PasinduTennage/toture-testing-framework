@@ -1,4 +1,5 @@
 toture/bin/
+dummy/bin/
 vendor/
 
 *.log

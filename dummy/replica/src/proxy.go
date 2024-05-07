@@ -10,38 +10,43 @@ import (
 	"toture-test/dummy/configuration"
 )
 
+// Proxy is the main struct of the proxy
 type Proxy struct {
 	name        int64 // unique node id
 	numReplicas int
 
-	addrList        map[int64][]string // map with the IP:port address
-	outgoingWriters map[int64][]*bufio.Writer
+	addrList        map[int64][]string        // map with the IP:port address of each remote replica
+	outgoingWriters map[int64][]*bufio.Writer // the ip ports of each remote replica
 
-	serverAddress []string // proxy address
+	serverAddress []string // listening address of self
 
 	debugOn    bool // if turned on, the debug messages will be print on the console
 	debugLevel int  // debug level
 
-	serverStarted bool // true if the first status message with operation type 1 received
+	lastStarTime    time.Time // last time when stats were printed
+	receivedLatency []int64   // list of latencies of received messages since the lastStartTime
 
-	startTime       time.Time
-	receivedLatency []int64
+	sent sync.Map // to save the set of sent messages
 
-	sent sync.Map
+	incomingChan chan *ReceivedMessage // all incoming messages are sent to this channel
 
-	incomingChan chan *ReceivedMessage
-
-	counter int64
+	counter int64 // to create unique message index
 }
+
+// each time a new request is sent, a Request object is created and stored in sent
 
 type Request struct {
 	sentTime time.Time
 }
 
+// ReceivedMessage is a struct to store the received message and the sender id
+
 type ReceivedMessage struct {
 	message Serializable
 	sender  int32
 }
+
+// NewProxy creates a new proxy object
 
 func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugLevel int) *Proxy {
 
@@ -53,10 +58,9 @@ func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugL
 		serverAddress:   []string{},
 		debugOn:         debugOn,
 		debugLevel:      debugLevel,
-		serverStarted:   false,
-		incomingChan:    make(chan *ReceivedMessage, 1000),
-		counter:         0,
 		receivedLatency: make([]int64, 0),
+		incomingChan:    make(chan *ReceivedMessage, 100000),
+		counter:         0,
 	}
 
 	// initialize the addrList

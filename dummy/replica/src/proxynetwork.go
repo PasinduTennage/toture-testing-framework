@@ -3,7 +3,6 @@ package dummy
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"math/rand"
 	"net"
@@ -11,7 +10,7 @@ import (
 	"time"
 )
 
-// start listening to the proxy tcp connection, and setup all outgoing wires
+// start listening to the proxy tcp connections
 
 func (pr *Proxy) NetworkInit() {
 	pr.waitForConnections()
@@ -30,24 +29,25 @@ func (pr *Proxy) waitForConnections() {
 			var b [4]byte
 			bs := b[:4]
 
-			listener, _ := net.Listen("tcp", la)
+			listener, err := net.Listen("tcp", la)
+			if err != nil {
+				panic(err.Error())
+			}
 			pr.debug("Listening to messages on "+la, 0)
 
 			for true {
 				conn, err := listener.Accept()
 				if err != nil {
-					fmt.Println("TCP accept error:", err)
-					panic(err)
+					panic(err.Error())
 				}
 				if _, err := io.ReadFull(conn, bs); err != nil {
-					fmt.Println("Connection id reading error:", err)
-					panic(err)
+					panic(err.Error())
 				}
 				id := int32(binary.LittleEndian.Uint16(bs))
 				pr.debug("Received incoming tcp connection from "+strconv.Itoa(int(id)), -1)
 
 				go pr.connectionListener(bufio.NewReader(conn), id)
-				pr.debug("Started listening to "+strconv.Itoa(int(id)), -1)
+				pr.debug("Started listening to "+strconv.Itoa(int(id)), 0)
 			}
 		}(pr.serverAddress[i])
 	}
@@ -71,7 +71,7 @@ func (pr *Proxy) connectionListener(reader *bufio.Reader, id int32) {
 }
 
 /*
-	make a TCP connection to the client id
+	make TCP connections to other replicas
 */
 
 func (pr *Proxy) ConnectToReplicas() {
@@ -80,6 +80,7 @@ func (pr *Proxy) ConnectToReplicas() {
 		for i := 0; i < len(addresses); i++ {
 			var b [4]byte
 			bs := b[:4]
+
 			for true {
 				conn, err := net.Dial("tcp", addresses[i])
 				if err == nil {
@@ -93,6 +94,7 @@ func (pr *Proxy) ConnectToReplicas() {
 					pr.debug("Started outgoing tcp connection to "+addresses[i], 0)
 					break
 				} else {
+					pr.debug("failed to connect to "+addresses[i], 0)
 					time.Sleep(time.Duration(10) * time.Millisecond)
 				}
 			}
