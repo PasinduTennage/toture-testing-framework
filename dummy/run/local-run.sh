@@ -1,3 +1,5 @@
+duration=$1
+
 dummy_path="dummy/bin/dummy"
 
 pkill dummy; pkill dummy; pkill dummy; pkill dummy; pkill dummy
@@ -12,7 +14,7 @@ nohup ./${dummy_path} --name 5 &
 
 echo "Started 5 dummy replicas"
 
-sleep 200
+sleep ${duration}
 
 pkill dummy; pkill dummy; pkill dummy; pkill dummy; pkill dummy
 
