@@ -2,7 +2,6 @@ package main
 
 import (
 	"time"
-	"toture-test/toture/cmd"
 )
 
 func main() {
@@ -22,7 +21,6 @@ func main() {
 	//flag.Parse()
 	//time.Sleep(5 * time.Second) // this wait time is for the connections to establish
 
-	cns, _ := cmd.RunDummyThreads([]int{10001, 10002, 10003, 10004, 10005})
 	time.Sleep(200 * time.Second)
 	for _, cn := range cns {
 		select {

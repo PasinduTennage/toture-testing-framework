@@ -10,6 +10,7 @@ import (
 )
 
 // get the process ids with the name
+
 func GetProcessIds(name string) ([]int, error) {
 	// Execute 'pgrep' command to find process IDs by name
 	cmd := exec.Command("pgrep", name)
@@ -34,7 +35,8 @@ func GetProcessIds(name string) ([]int, error) {
 	return pids, nil
 }
 
-// run a set of dummy threads with the given port, and return the channel to stop the processes
+// run a set of dummy threads with the given port, and return the channel to stop the threads
+
 func RunDummyThreads(ports []int) ([]chan bool, int) {
 
 	chans := []chan bool{}
@@ -59,9 +61,8 @@ func RunDummyThreads(ports []int) ([]chan bool, int) {
 					return
 				default:
 					if Listener != nil {
-
+						//fmt.Printf("running dummy thread on port %d\n", p)
 					}
-					//fmt.Printf("running dummy thread on port %d\n", p)
 					break
 				}
 			}
@@ -69,4 +70,28 @@ func RunDummyThreads(ports []int) ([]chan bool, int) {
 	}
 	fmt.Printf("pid: %v\n", os.Getpid())
 	return chans, os.Getpid()
+}
+
+// given a port return the process id
+
+func GetProcessID(port int) int {
+	// Run the lsof command to get the process ID using the specified port
+	out, err := exec.Command("lsof", "-i", ":"+strconv.Itoa(port)).Output()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// Split the output into lines
+	lines := strings.Split(string(out), "\n")
+
+	if len(lines) >= 2 {
+		fields := strings.Fields(lines[1])
+		if len(fields) >= 2 {
+			pid, _ := strconv.Atoi(fields[1])
+			return pid
+		}
+	}
+
+	// If no process ID found, return -1
+	return -1
 }
