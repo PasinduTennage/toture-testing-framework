@@ -1,6 +1,9 @@
 package cmd
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Toture struct {
 	attacker Attacker
@@ -32,7 +35,7 @@ func (t *Toture) startLocalSimpleAttack() {
 		panic("testTime option not found")
 	}
 	start := time.Now()
-	for time.Now().Sub(start).Seconds() < test_time.(float64) {
+	for time.Now().Sub(start).Seconds() < float64(test_time.(int)) {
 		// get two random pIds from lna.ports
 		pids := t.getRandomProcessIDs(t.attacker.GetPiDPortMap(), t.options["numThreshold"].(int))
 		for _, pid := range pids {
@@ -54,6 +57,6 @@ func (t *Toture) getRandomProcessIDs(ports map[int][]int, n int) []int {
 			return pids
 		}
 	}
-	panic("should not happen")
+	panic("should not happen: pids: " + fmt.Sprintf("%v", pids) + ", port map: " + fmt.Sprintf("%v", ports) + ", n: " + fmt.Sprintf("%v", n))
 
 }
