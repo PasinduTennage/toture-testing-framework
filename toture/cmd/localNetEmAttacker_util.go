@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os/exec"
 	"strconv"
 )
@@ -30,6 +31,7 @@ func NewLocalNetEmAttacker(
 
 	for i := 0; i < len(ports); i++ {
 		pid := GetProcessID(ports[i][0])
+		fmt.Printf("pid: %v for port %v\n", pid, ports[i][0])
 		if pid == -1 {
 			panic("error getting process id")
 		}
