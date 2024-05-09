@@ -23,11 +23,7 @@ type LocalNetEmAttacker struct {
 func NewLocalNetEmAttacker(
 	replicaName string,
 	ports [][]int,
-	delay int,
-	lossRate int,
-	duplicateRate int,
-	reorderRate int,
-	corruptRate int) *LocalNetEmAttacker {
+	options map[string]any) *LocalNetEmAttacker {
 
 	process_port_map := make(map[int][]int)
 	operations := make(map[int]string)
@@ -44,11 +40,11 @@ func NewLocalNetEmAttacker(
 	lNEA := LocalNetEmAttacker{
 		replicaName:   replicaName,
 		ports:         process_port_map,
-		delay:         delay,
-		lossRate:      lossRate,
-		duplicateRate: duplicateRate,
-		reorderRate:   reorderRate,
-		corruptRate:   corruptRate,
+		delay:         options["delay"].(int),
+		lossRate:      options["lossRate"].(int),
+		duplicateRate: options["duplicateRate"].(int),
+		reorderRate:   options["reorderRate"].(int),
+		corruptRate:   options["corruptRate"].(int),
 		operations:    operations,
 	}
 
@@ -115,7 +111,11 @@ func (lna *LocalNetEmAttacker) Reset(pId int) error {
 	return nil
 }
 
-func (lna *LocalNetEmAttacker) kill(pId int) error {
+func (lna *LocalNetEmAttacker) Kill(pId int) error {
 	exec.Command("pkill -P " + strconv.Itoa(pId))
 	return nil
+}
+
+func (lna *LocalNetEmAttacker) GetPiDPortMap() map[int][]int {
+	return lna.ports
 }
