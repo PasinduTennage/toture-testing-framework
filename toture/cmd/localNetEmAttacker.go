@@ -1,5 +1,6 @@
 package cmd
 
+// high level attack interface
 func (lna *LocalNetEmAttacker) Run() error {
 	lna.Start()
 

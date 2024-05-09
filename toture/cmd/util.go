@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -94,4 +95,53 @@ func GetProcessID(port int) int {
 
 	// If no process ID found, return -1
 	return -1
+}
+
+// NewConfig loads [][]ports from a file
+
+func NewConfig(fname string) ([][]int, error) {
+	ports := make([][]int, 0)
+	file, err := os.Open(fname)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err.Error())
+		}
+	}(file)
+
+	var lines []string
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err.Error())
+	}
+
+	for _, line := range lines {
+		parts := strings.Split(line, " ")
+		new_ports := convertToIntArr(parts[2:])
+		ports = append(ports, new_ports)
+	}
+
+	return ports, nil
+}
+
+// convert string array to int array
+func convertToIntArr(i []string) []int {
+	var res []int
+	for _, v := range i {
+		val, err := strconv.Atoi(v)
+		if err != nil {
+			panic(err.Error())
+		}
+		res = append(res, val)
+	}
+	return res
 }
