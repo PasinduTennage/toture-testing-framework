@@ -77,7 +77,7 @@ func RunDummyThreads(ports []int) ([]chan bool, int) {
 
 func GetProcessID(port int) int {
 	// Run the lsof command to get the process ID using the specified port
-	out, err := exec.Command("lsof", "-i", ":"+strconv.Itoa(port)).Output()
+	out, err := exec.Command("lsof", "-ti", ":"+strconv.Itoa(port), "-s", "TCP:LISTEN").Output()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -85,10 +85,10 @@ func GetProcessID(port int) int {
 	// Split the output into lines
 	lines := strings.Split(string(out), "\n")
 
-	if len(lines) >= 2 {
-		fields := strings.Fields(lines[1])
-		if len(fields) >= 2 {
-			pid, _ := strconv.Atoi(fields[1])
+	if len(lines) >= 1 {
+		fields := strings.Fields(lines[0])
+		if len(fields) >= 1 {
+			pid, _ := strconv.Atoi(fields[0])
 			return pid
 		}
 	}

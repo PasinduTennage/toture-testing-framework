@@ -54,6 +54,30 @@ func Test_getProcessID(t *testing.T) {
 				port: 10001,
 			},
 		},
+		{
+			name: "simple test",
+			args: args{
+				port: 11001,
+			},
+		},
+		{
+			name: "simple test",
+			args: args{
+				port: 12001,
+			},
+		},
+		{
+			name: "simple test",
+			args: args{
+				port: 13001,
+			},
+		},
+		{
+			name: "simple test",
+			args: args{
+				port: 14001,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
