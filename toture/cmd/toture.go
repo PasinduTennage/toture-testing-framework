@@ -43,7 +43,7 @@ func (t *Toture) startLocalSimpleAttack() {
 	for time.Now().Sub(start).Seconds() < float64(test_time.(int)) {
 		// get two random pIds from lna.ports
 		pids := t.getRandomProcessIDs(t.attacker.GetPiDPortMap(), t.options["numThreshold"].(int))
-		t.debug("pids under attack: "+fmt.Sprintf("%v", pids)+" at time "+fmt.Sprintf("%v\n", time.Now().Sub(start).Seconds())+" s", 1)
+		t.debug("pids under attack: "+fmt.Sprintf("%v", pids)+" at time "+fmt.Sprintf("%v", time.Now().Sub(start).Seconds())+" s\n", 1)
 		for _, pid := range pids {
 			t.attacker.Halt(pid)
 		}

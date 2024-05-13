@@ -64,15 +64,25 @@ func NewLocalNetEmAttacker(
 
 func (lna *LocalNetEmAttacker) Start() error {
 	// initialize the qdisc
-	cmd := exec.Command("tc", "qdisc del dev lo root ; sudo tc filter del dev lo parent ffff:")
+	cmd := exec.Command("tc", "qdisc", "del", "dev", "lo", "root")
 	if cmd.Err != nil {
 		panic(cmd.Err)
 	}
 	err := cmd.Run()
 	if err != nil {
-		panic(err.Error())
+		println(cmd.Output())
 	}
-	cmd = exec.Command("tc", "qdisc add dev lo root handle 1: prio")
+
+	cmd = exec.Command("tc", "filter", "del", "dev", "lo", "parent", "ffff:")
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err = cmd.Run()
+	if err != nil {
+		println(cmd.Output())
+	}
+
+	cmd = exec.Command("tc", "qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio")
 	if cmd.Err != nil {
 		panic(cmd.Err)
 	}
@@ -86,14 +96,26 @@ func (lna *LocalNetEmAttacker) Start() error {
 
 func (lna *LocalNetEmAttacker) End() error {
 	// delete all rules and filters
-	cmd := exec.Command("tc", "qdisc del dev lo root ; sudo tc filter del dev lo parent ffff:")
+	cmd := exec.Command("tc", "qdisc", "del", "dev", "lo", "root")
 	if cmd.Err != nil {
 		panic(cmd.Err)
 	}
 	err := cmd.Run()
 	if err != nil {
+		println(cmd.Output())
 		panic(err.Error())
 	}
+
+	cmd = exec.Command("tc", "filter", "del", "dev", "lo", "parent", "ffff:")
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err = cmd.Run()
+	if err != nil {
+		println(cmd.Output())
+		//panic(err.Error())
+	}
+
 	lna.debug("ended LocalNetEmAttacker", 1)
 	return nil
 }
