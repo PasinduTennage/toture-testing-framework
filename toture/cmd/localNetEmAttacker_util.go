@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 // LocalNetEmAttacker is a struct that implements the Attacker interface
@@ -63,22 +64,51 @@ func NewLocalNetEmAttacker(
 
 func (lna *LocalNetEmAttacker) Start() error {
 	// initialize the qdisc
-	exec.Command("tc qdisc del dev lo root ; sudo tc filter del dev lo parent ffff:")
-	exec.Command("tc qdisc add dev lo root handle 1: prio")
+	cmd := exec.Command("tc", "qdisc del dev lo root ; sudo tc filter del dev lo parent ffff:")
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err := cmd.Run()
+	if err != nil {
+		panic(err.Error())
+	}
+	cmd = exec.Command("tc", "qdisc add dev lo root handle 1: prio")
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err = cmd.Run()
+	if err != nil {
+		panic(err.Error())
+	}
 	lna.debug("started LocalNetEmAttacker", 1)
 	return nil
 }
 
 func (lna *LocalNetEmAttacker) End() error {
 	// delete all rules and filters
-	exec.Command("tc qdisc del dev lo root ; sudo tc filter del dev lo parent ffff:")
+	cmd := exec.Command("tc", "qdisc del dev lo root ; sudo tc filter del dev lo parent ffff:")
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err := cmd.Run()
+	if err != nil {
+		panic(err.Error())
+	}
 	lna.debug("ended LocalNetEmAttacker", 1)
 	return nil
 }
 
 func (lna *LocalNetEmAttacker) ExecuteLastCommand(pId int) error {
 	if len(lna.operations[pId]) > 0 {
-		exec.Command(lna.operations[pId])
+		t := strings.Split(lna.operations[pId], " ")
+		cmd := exec.Command(t[0], t[1:]...)
+		if cmd.Err != nil {
+			panic(cmd.Err)
+		}
+		err := cmd.Run()
+		if err != nil {
+			panic(err.Error())
+		}
 		lna.debug("executed last command for process "+strconv.Itoa(pId)+": "+lna.operations[pId], 1)
 		lna.operations[pId] = ""
 	}
@@ -119,7 +149,14 @@ func (lna *LocalNetEmAttacker) Corrupt(pId int, corruptRate int) error {
 
 func (lna *LocalNetEmAttacker) Halt(pId int) error {
 	lna.ExecuteLastCommand(pId)
-	exec.Command("kill -STOP " + strconv.Itoa(pId))
+	cmd := exec.Command("kill", "-STOP", strconv.Itoa(pId))
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err := cmd.Run()
+	if err != nil {
+		panic(err.Error())
+	}
 	lna.debug("halting process "+strconv.Itoa(pId), 1)
 	lna.operations[pId] = "kill -CONT " + strconv.Itoa(pId)
 	return nil
@@ -132,7 +169,14 @@ func (lna *LocalNetEmAttacker) Reset(pId int) error {
 }
 
 func (lna *LocalNetEmAttacker) Kill(pId int) error {
-	exec.Command("pkill -P " + strconv.Itoa(pId))
+	cmd := exec.Command("pkill", "-P", strconv.Itoa(pId))
+	if cmd.Err != nil {
+		panic(cmd.Err)
+	}
+	err := cmd.Run()
+	if err != nil {
+		panic(err.Error())
+	}
 	lna.debug("killing process "+strconv.Itoa(pId), 1)
 	return nil
 }
@@ -142,7 +186,7 @@ func (lna *LocalNetEmAttacker) GetPiDPortMap() map[int][]int {
 }
 
 func (lna *LocalNetEmAttacker) debug(s string, level int) {
-	if lna.debugOn && lna.debugLevel >= level {
+	if lna.debugOn && lna.debugLevel <= level {
 		println(s)
 	}
 }

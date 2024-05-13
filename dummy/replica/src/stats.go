@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -30,7 +31,7 @@ func (pr *Proxy) printCPUUsage() {
 		fmt.Println("Error getting CPU usage:", err)
 		return
 	}
-	fmt.Printf("CPU Usage: %s\n", string(out))
+	fmt.Printf("CPU Usage: %s\n\n", strings.Split(string(out), "\n")[1])
 }
 
 // write state
