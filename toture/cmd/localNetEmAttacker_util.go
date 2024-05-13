@@ -73,15 +73,6 @@ func (lna *LocalNetEmAttacker) Start() error {
 		println(cmd.Output())
 	}
 
-	cmd = exec.Command("tc", "filter", "del", "dev", "lo", "parent", "ffff:")
-	if cmd.Err != nil {
-		panic(cmd.Err)
-	}
-	err = cmd.Run()
-	if err != nil {
-		println(cmd.Output())
-	}
-
 	cmd = exec.Command("tc", "qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio")
 	if cmd.Err != nil {
 		panic(cmd.Err)
@@ -139,6 +130,28 @@ func (lna *LocalNetEmAttacker) ExecuteLastCommand(pId int) error {
 
 func (lna *LocalNetEmAttacker) Delay(pId int, delay int) error {
 	lna.ExecuteLastCommand(pId)
+	/*
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc del dev lo root
+		Error: Cannot delete qdisc with handle of zero.
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc add dev lo root handle 1: prio
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc add dev lo parent 1:1 handle 10: netem delay 200ms
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc add dev lo parent 1:2 handle 20: netem delay 200ms
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc del dev lo parent 1:1 handle 10:
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc add dev lo parent 1:1 handle 10: netem delay 200ms
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc del dev lo parent 1:2 handle 20:
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc qdisc add dev lo parent 1:2 handle 20: netem delay 200ms
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10000 0xffff flowid 1:1 action flowid 1:10
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10001 0xffff flowid 1:1 action flowid 1:10
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10002 0xffff flowid 1:1 action flowid 1:10
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10003 0xffff flowid 1:1 action flowid 1:10
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10004 0xffff flowid 1:1 action flowid 1:10
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 20001 0xffff flowid 1:2 action flowid 1:20
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 20002 0xffff flowid 1:2 action flowid 1:20
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 20003 0xffff flowid 1:2 action flowid 1:20
+		pasindu@pasindu:~/Documents/toture-testing-consensus$ tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 20004 0xffff flowid 1:2 action flowid 1:20
+
+	*/
+
 	lna.debug("delaying process "+strconv.Itoa(pId)+" by "+strconv.Itoa(delay)+"ms", 1)
 
 	return nil
