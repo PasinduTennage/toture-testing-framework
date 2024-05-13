@@ -6,14 +6,18 @@ import (
 )
 
 type Toture struct {
-	attacker Attacker
-	options  map[string]any
+	attacker   Attacker
+	options    map[string]any
+	debugOn    bool
+	debugLevel int
 }
 
-func NewTorture(attacker Attacker, options map[string]any) *Toture {
+func NewTorture(attacker Attacker, options map[string]any, debugOn bool, debugLevel int) *Toture {
 	to := Toture{
-		attacker: attacker,
-		options:  options,
+		attacker:   attacker,
+		options:    options,
+		debugOn:    debugOn,
+		debugLevel: debugLevel,
 	}
 	return &to
 }
@@ -30,6 +34,7 @@ func (t *Toture) Run() error {
 // example attack that randomly slows down the replicas
 
 func (t *Toture) startLocalSimpleAttack() {
+	t.debug("starting local simple attack", 1)
 	test_time, ok := t.options["testTime"]
 	if !ok {
 		panic("testTime option not found")
@@ -38,6 +43,7 @@ func (t *Toture) startLocalSimpleAttack() {
 	for time.Now().Sub(start).Seconds() < float64(test_time.(int)) {
 		// get two random pIds from lna.ports
 		pids := t.getRandomProcessIDs(t.attacker.GetPiDPortMap(), t.options["numThreshold"].(int))
+		t.debug("pids under attack: "+fmt.Sprintf("%v", pids)+" at time "+fmt.Sprintf("%v\n", time.Now().Sub(start).Seconds()), 1)
 		for _, pid := range pids {
 			t.attacker.Halt(pid)
 		}
@@ -59,4 +65,10 @@ func (t *Toture) getRandomProcessIDs(ports map[int][]int, n int) []int {
 	}
 	panic("should not happen: pids: " + fmt.Sprintf("%v", pids) + ", port map: " + fmt.Sprintf("%v", ports) + ", n: " + fmt.Sprintf("%v", n))
 
+}
+
+func (t *Toture) debug(msg string, level int) {
+	if t.debugOn && t.debugLevel >= level {
+		fmt.Println(msg)
+	}
 }

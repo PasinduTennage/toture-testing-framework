@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"toture-test/toture/cmd"
 )
 
@@ -47,14 +48,16 @@ func main() {
 
 	switch *attacker {
 	case "localNetEm":
+		if *debugOn {
+			fmt.Printf("starting localNetEm attacker\n")
+		}
 		ports, _ := cmd.NewConfig(*config)
-		attackerInstance = cmd.NewLocalNetEmAttacker(*replicaName, ports, options)
+		attackerInstance = cmd.NewLocalNetEmAttacker(*replicaName, ports, options, *debugOn, *debugLevel)
 		break
 	default:
 		break
 	}
 
-	t := cmd.NewTorture(attackerInstance, options)
+	t := cmd.NewTorture(attackerInstance, options, *debugOn, *debugLevel)
 	t.Run()
-
 }
