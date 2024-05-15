@@ -1,9 +1,7 @@
-package dummy
+package torture
 
 import (
-	"bytes"
 	"encoding/binary"
-	"encoding/gob"
 	"google.golang.org/protobuf/proto"
 	"io"
 )
@@ -12,18 +10,6 @@ type Serializable interface {
 	Marshal(io.Writer) error
 	Unmarshal(io.Reader) error
 	New() Serializable
-}
-
-/*
-	A util function to get the size of a message in bytes
-*/
-
-func GetRealSizeOf(v interface{}) (int, error) {
-	b := new(bytes.Buffer)
-	if err := gob.NewEncoder(b).Encode(v); err != nil {
-		return 0, err
-	}
-	return b.Len(), nil
 }
 
 func (t *Message) Marshal(wire io.Writer) error {

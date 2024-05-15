@@ -1,4 +1,4 @@
-package dummy
+package torture
 
 import (
 	"fmt"

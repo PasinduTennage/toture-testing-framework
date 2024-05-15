@@ -3,8 +3,7 @@ package main
 import (
 	"flag"
 	"time"
-	"toture-test/dummy/configuration"
-	dummy "toture-test/dummy/replica/src"
+	"toture-test/torture/configuration"
 )
 
 // this file defines the main routine of Dummy, which takes input arguments from the command line
