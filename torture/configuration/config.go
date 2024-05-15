@@ -18,9 +18,16 @@ type ReplicaInstance struct {
 	REPLICA_PORTS []string
 }
 
+type Controller struct {
+	Name string
+	IP   string
+	PORT string
+}
+
 // InstanceConfig describes the set of replicas
 type InstanceConfig struct {
-	Peers []ReplicaInstance
+	Peers      []ReplicaInstance
+	controller Controller
 }
 
 // NewInstanceConfig loads an instance configuration from given file
@@ -52,7 +59,8 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 		panic(err.Error())
 	}
 
-	for _, line := range lines {
+	for i := 0; i < len(lines)-1; i++ {
+		line := lines[i]
 		parts := strings.Split(line, " ")
 
 		// Create a new ReplicaInstance
@@ -66,6 +74,14 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 		// Append the new ReplicaInstance to the configuration
 		cfg.Peers = append(cfg.Peers, peer)
 	}
+	c_line := strings.Split(lines[len(lines)-1], " ")
+	c := Controller{
+		Name: c_line[0],
+		IP:   c_line[1],
+		PORT: c_line[2],
+	}
+
+	cfg.controller = c
 
 	// set the self ip to 0.0.0.0
 	cfg = configureSelfIP(cfg, name)

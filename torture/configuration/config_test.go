@@ -55,6 +55,11 @@ func TestNewInstanceConfig(t *testing.T) {
 						REPLICA_PORTS: []string{"14000", "14001", "14002", "14003"},
 					},
 				},
+				controller: Controller{
+					Name: "11",
+					IP:   "0.0.0.0",
+					PORT: "9999",
+				},
 			},
 			wantErr: false,
 		},
