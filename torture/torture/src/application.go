@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"toture-test/torture/proto"
 )
 
-func (pr *Proxy) handleMessage(message *Message, sender int32) {
+func (pr *Proxy) handleMessage(message *proto.Message, sender int32) {
 	pr.debug("Received message: "+message.Message+" from "+string(sender), 0)
 	v, ok := pr.sent.Load(message.Index)
 	if ok {
@@ -56,10 +57,10 @@ func (pr *Proxy) StartApplication() {
 
 // generate a random message
 
-func (pr *Proxy) getRandomMessage() *Message {
+func (pr *Proxy) getRandomMessage() *proto.Message {
 	// generate a random Message
 	pr.counter++
-	return &Message{
+	return &proto.Message{
 		Index:   strconv.FormatInt(pr.name, 10) + ":" + strconv.FormatInt(pr.counter, 10),
 		Message: "random message",
 	}

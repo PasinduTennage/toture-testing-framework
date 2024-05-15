@@ -1,4 +1,4 @@
-package torture
+package proto
 
 import (
 	"encoding/binary"

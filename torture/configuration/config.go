@@ -8,7 +8,7 @@ import (
 )
 
 /*
-	config.go defines the structs and methods to pass the configuration file, that contains the IP:ports of each torture replica
+	config.go defines the structs and methods to pass the configuration file, that contains the IP:ports of each torture torture
 */
 
 type ReplicaInstance struct {
@@ -27,7 +27,7 @@ type Controller struct {
 // InstanceConfig describes the set of replicas
 type InstanceConfig struct {
 	Peers      []ReplicaInstance
-	controller Controller
+	Controller Controller
 }
 
 // NewInstanceConfig loads an instance configuration from given file
@@ -81,7 +81,7 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 		PORT: c_line[2],
 	}
 
-	cfg.controller = c
+	cfg.Controller = c
 
 	// set the self ip to 0.0.0.0
 	cfg = configureSelfIP(cfg, name)

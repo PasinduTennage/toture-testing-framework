@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.27.1
 // 	protoc        v3.12.4
-// source: torture/replica/src/messages.proto
+// source: torture/torture/src/messages.proto
 
-package torture
+package proto
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

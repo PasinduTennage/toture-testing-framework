@@ -10,7 +10,7 @@ import (
 
 func main() {
 	configFile := flag.String("config", "dummy/configuration/local-config.cfg", "configuration file")
-	name := flag.Int64("name", 1, "name of the replica")
+	name := flag.Int64("name", 1, "name of the torture")
 	debugOn := flag.Bool("debugOn", false, "true / false")
 	debugLevel := flag.Int("debugLevel", 1, "debug level")
 

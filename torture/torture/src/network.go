@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"toture-test/torture/proto"
 )
 
 // start listening to the proxy tcp connections
@@ -62,7 +63,7 @@ func (pr *Proxy) connectionListener(reader *bufio.Reader, id int32) {
 
 	var err error = nil
 	for true {
-		obj := (&Message{}).New()
+		obj := (&proto.Message{}).New()
 		if err = obj.Unmarshal(reader); err != nil {
 			//pr.debug("Error while unmarshalling", 0)
 			return
@@ -109,7 +110,7 @@ func (pr *Proxy) ConnectToReplicas() {
 	write a message to the wire
 */
 
-func (pr *Proxy) sendMessage(peer int64, msg *Message) {
+func (pr *Proxy) sendMessage(peer int64, msg *proto.Message) {
 
 	pr.debug("sending message to  "+strconv.Itoa(int(peer)), 0)
 
