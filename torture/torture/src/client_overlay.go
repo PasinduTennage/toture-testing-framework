@@ -107,7 +107,7 @@ func (c *TortureClient) controllerListener(reader *bufio.Reader) {
 			//pr.debug("Error while unmarshalling", 0)
 			return
 		}
-		c.handlerControllerMessage(obj)
+		c.handlerControllerMessage(obj.(*proto.Message))
 	}
 }
 
