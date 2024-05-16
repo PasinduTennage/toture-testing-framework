@@ -16,15 +16,15 @@ import (
 type TortureClient struct {
 	name              int           // unique node id
 	serverAddress     string        // listening address of self
-	controllerAddress string        // ip of the controller
+	controllerAddress string        // ip:port of the controller
 	controllerWriter  *bufio.Writer // IO writer to the controller
-	mutex             *sync.Mutex   // IO reader to the controller
+	mutex             *sync.Mutex
 
 	debugOn    bool // if turned on, the debug messages will be print on the console
 	debugLevel int  // debug level
 }
 
-// NewCLient creates a new torture client
+// NewClient creates a new torture client
 
 func NewClient(name int, cfg configuration.InstanceConfig, debugOn bool, debugLevel int) *TortureClient {
 
@@ -65,14 +65,14 @@ func (cl *TortureClient) debug(s string, i int) {
 // start listening to the client tcp connections
 
 func (c *TortureClient) NetworkInit() {
-	c.waitForConnection()
+	c.waitForControllerConnection()
 }
 
 /*
-	Listen on the client ports for new connection
+	Listen on the client ports for controller connection
 */
 
-func (c *TortureClient) waitForConnection() {
+func (c *TortureClient) waitForControllerConnection() {
 
 	go func(la string) {
 
@@ -80,13 +80,13 @@ func (c *TortureClient) waitForConnection() {
 		if err != nil {
 			panic(err.Error())
 		}
-		c.debug("Client listening to messages on "+la, 0)
+		c.debug("Client listening to connections on "+la, 0)
 
 		conn, err := listener.Accept()
 		if err != nil {
 			panic(err.Error())
 		}
-		c.debug("Received incoming tcp connection from controller ", -1)
+		c.debug("Received incoming tcp connection from controller ", 0)
 		go c.controllerListener(bufio.NewReader(conn))
 		c.debug("Started listening to controller ", 1)
 
@@ -165,6 +165,6 @@ func (c *TortureClient) sendControllerMessage(msg *proto.Message) {
 		m.Unlock()
 		return
 	}
-	c.debug("sent message to  controller ", 1)
 	m.Unlock()
+	c.debug("sent message to  controller ", 1)
 }

@@ -24,7 +24,7 @@ type TortureController struct {
 	serverAddress string                // listening address of self
 	clients       map[int]string        // ip address of each torture client
 	clientWriters map[int]*bufio.Writer // IO writer to each client
-	mutexes       map[int]*sync.Mutex   // IO writer to each client
+	mutexes       map[int]*sync.Mutex
 
 	debugOn    bool // if turned on, the debug messages will be print on the console
 	debugLevel int  // debug level
@@ -175,8 +175,8 @@ func (c *TortureController) sendMessage(client int64, msg *proto.Message) {
 		m.Unlock()
 		return
 	}
-	c.debug("sent message to  "+strconv.Itoa(int(client)), 1)
 	m.Unlock()
+	c.debug("sent message to  "+strconv.Itoa(int(client)), 1)
 }
 
 /*

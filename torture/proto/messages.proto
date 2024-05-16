@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "torture/";
+option go_package = "proto/";
 
 // this file defines the proto definitions of the messages that are used in torture replica
 

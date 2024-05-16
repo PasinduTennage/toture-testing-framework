@@ -8,7 +8,7 @@ import (
 )
 
 /*
-	config.go defines the structs and methods to pass the configuration file, that contains the IP:ports of each torture torture
+	config.go defines the structs and methods to pass the configuration file, that contains the IP:ports of each torture client and controller
 */
 
 type ReplicaInstance struct {
