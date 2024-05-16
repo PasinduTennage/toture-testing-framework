@@ -28,11 +28,13 @@ func main() {
 		c.Run()
 		c.NetworkInit()
 		c.ConnectToClients()
+		time.Sleep(10 * time.Second)
 		c.StartAttack()
 	} else {
 		cl := torture.NewClient(int(*name), *cfg, *debugOn, *debugLevel)
 		cl.NetworkInit()
 		cl.ConnectToController()
+		time.Sleep(10 * time.Second)
 	}
 
 	/*to avoid exiting the main thread*/
