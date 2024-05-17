@@ -48,22 +48,27 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, options map[s
 }
 
 func (l *LocalNetEmAttacker) DelayAllPacketsBy(int) error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) LossPercentagePackets(int) error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) DuplicatePercentagePackets(int) error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) ReorderPercentagePackets(int) error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) CorruptPercentagePackets(int) error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
@@ -79,14 +84,18 @@ func (l *LocalNetEmAttacker) Reset() error {
 }
 
 func (l *LocalNetEmAttacker) Kill() error {
-	return nil
+	l.ExecuteLastCommand()
+	err := util.RunCommand("pkill", []string{"-P", l.process_id})
+	return err
 }
 
 func (l *LocalNetEmAttacker) BufferAllMessages() error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) AllowMessages(int) error {
+	l.ExecuteLastCommand()
 	return nil
 }
 
