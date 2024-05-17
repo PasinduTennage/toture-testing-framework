@@ -36,7 +36,7 @@ func main() {
 	} else {
 		cl := torture.NewClient(int(*name), *cfg, *debugOn, *debugLevel)
 		cl.NetworkInit()
-		cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker())
+		cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker(int(*name), *debugOn, *debugLevel, nil, *cfg))
 		cl.ConnectToController()
 		time.Sleep(10 * time.Second)
 	}
