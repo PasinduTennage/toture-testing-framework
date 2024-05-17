@@ -12,7 +12,7 @@ type LocalNetEmAttacker struct {
 	debugOn            bool
 	debugLevel         int
 	options            map[string]any
-	nextCommand        string
+	nextCommand        []string
 	ports_under_attack []string // ports under attack
 	process_id         string   // process under attack
 }
@@ -25,7 +25,7 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, options map[s
 		debugOn:     debugOn,
 		debugLevel:  debugLevel,
 		options:     options,
-		nextCommand: "",
+		nextCommand: []string{},
 	}
 
 	for i := 0; i < len(cgf.Peers); i++ {
@@ -68,11 +68,14 @@ func (l *LocalNetEmAttacker) CorruptPercentagePackets(int) error {
 }
 
 func (l *LocalNetEmAttacker) Halt() error {
-	return nil
+	l.ExecuteLastCommand()
+	err := util.RunCommand("kill", []string{"-STOP", l.process_id})
+	l.nextCommand = []string{"kill", "-CONT", l.process_id}
+	return err
 }
 
 func (l *LocalNetEmAttacker) Reset() error {
-	return nil
+	return l.ExecuteLastCommand()
 }
 
 func (l *LocalNetEmAttacker) Kill() error {
@@ -85,4 +88,13 @@ func (l *LocalNetEmAttacker) BufferAllMessages() error {
 
 func (l *LocalNetEmAttacker) AllowMessages(int) error {
 	return nil
+}
+
+func (l *LocalNetEmAttacker) ExecuteLastCommand() error {
+	if len(l.nextCommand) == 0 {
+		return nil
+	}
+	err := util.RunCommand(l.nextCommand[0], l.nextCommand[1:])
+	l.nextCommand = []string{}
+	return err
 }
