@@ -29,7 +29,8 @@ func main() {
 		c.NetworkInit()
 		c.ConnectToClients()
 		time.Sleep(10 * time.Second)
-		c.StartAttack()
+		nodes := torture.CreateNodes(*cfg, c)
+		torture.StartAttack(nodes)
 	} else {
 		cl := torture.NewClient(int(*name), *cfg, *debugOn, *debugLevel)
 		cl.NetworkInit()
