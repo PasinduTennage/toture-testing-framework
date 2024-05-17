@@ -22,6 +22,8 @@ type TortureClient struct {
 
 	debugOn    bool // if turned on, the debug messages will be print on the console
 	debugLevel int  // debug level
+
+	attacker Attacker
 }
 
 // NewClient creates a new torture client
@@ -52,6 +54,10 @@ func NewClient(name int, cfg configuration.InstanceConfig, debugOn bool, debugLe
 	cl.debug("initialed a new torture client "+strconv.Itoa(int(cl.name)), 0)
 
 	return &cl
+}
+
+func (cl *TortureClient) SetAttacker(a Attacker) {
+	cl.attacker = a
 }
 
 // debug prints the message to console if the debug is turned on
