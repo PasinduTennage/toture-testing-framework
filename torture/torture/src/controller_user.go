@@ -19,6 +19,6 @@ func StartAttack(nodes []*Node) {
 			node.BufferAllMessages()
 			node.AllowMessages(10)
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 }

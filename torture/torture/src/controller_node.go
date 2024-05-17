@@ -125,5 +125,5 @@ func (n *Node) AllowMessages(num_messages int) {
 
 func (c *TortureController) handleMessage(message *proto.Message, sender int) {
 	// print message
-	c.debug(fmt.Sprintf("Controller received message %v from %d\n", message, sender), -1)
+	c.debug(fmt.Sprintf("Controller received message %v from %d\n", message, sender), 0)
 }

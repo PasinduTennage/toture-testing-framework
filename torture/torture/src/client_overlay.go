@@ -134,7 +134,7 @@ func (c *TortureClient) ConnectToController() {
 			c.debug("Started outgoing tcp connection to controller ", 0)
 			break
 		} else {
-			c.debug("retrying because failed to connect to controller", 0)
+			c.debug("retrying because failed to connect to controller", -1)
 			time.Sleep(time.Duration(10) * time.Millisecond)
 		}
 	}
