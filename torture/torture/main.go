@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"time"
+	"toture-test/torture/attacker_impl"
 	"toture-test/torture/configuration"
+	"toture-test/torture/controller_frontend"
 	torture "toture-test/torture/torture/src"
 )
 
@@ -30,11 +32,11 @@ func main() {
 		c.ConnectToClients()
 		time.Sleep(10 * time.Second)
 		nodes := torture.CreateNodes(*cfg, c)
-		torture.StartAttack(nodes)
+		controller_frontend.StartAttack(nodes)
 	} else {
 		cl := torture.NewClient(int(*name), *cfg, *debugOn, *debugLevel)
 		cl.NetworkInit()
-		cl.SetAttacker(torture.NewLocalNetEmAttacker())
+		cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker())
 		cl.ConnectToController()
 		time.Sleep(10 * time.Second)
 	}

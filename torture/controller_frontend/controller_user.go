@@ -1,10 +1,13 @@
-package torture
+package controller_frontend
 
-import "time"
+import (
+	"time"
+	"toture-test/torture/torture/src"
+)
 
 // main attack logic goes here
 
-func StartAttack(nodes []*Node) {
+func StartAttack(nodes []*torture.Node) {
 	start_time := time.Now()
 	for time.Now().Sub(start_time) < 60*time.Second {
 		for _, node := range nodes {

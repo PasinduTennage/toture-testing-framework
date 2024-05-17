@@ -1,4 +1,4 @@
-package torture
+package attacker_impl
 
 type LocalNetEmAttacker struct {
 	debugOn    bool
