@@ -16,9 +16,10 @@ func StartAttack(nodes []*torture.Node) {
 			//node.DuplicatePercentagePackets(10)
 			//node.ReorderPercentagePackets(10)
 			//node.CorruptPercentagePackets(10)
-			//node.Halt()
-			//node.Reset()
-			node.Kill()
+			node.Halt()
+			time.Sleep(5 * time.Second)
+			node.Reset()
+			//node.Kill()
 			//node.BufferAllMessages()
 			//node.AllowMessages(10)
 		}
