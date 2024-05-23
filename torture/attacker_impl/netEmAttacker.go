@@ -21,6 +21,30 @@ type LocalNetEmAttacker struct {
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
 
+/*
+tc qdisc del dev lo root
+tc filter del dev lo parent 1:
+tc filter del dev lo
+
+tc qdisc add dev lo root handle 1: prio
+
+tc qdisc add dev lo parent 1:1 handle 10: netem delay 200ms
+tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10000 0xffff flowid 1:1 action flowid 1:10
+tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 10001 0xffff flowid 1:1 action flowid 1:10
+
+tc qdisc add dev lo parent 1:2 handle 20: netem delay 200ms
+tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 20001 0xffff flowid 1:2 action flowid 1:20
+tc filter add dev lo protocol ip parent 1: prio 1 u32 match ip dport 20002 0xffff flowid 1:2 action flowid 1:20
+
+
+tc filter del dev lo protocol ip parent 1: prio 1 handle 10 u32
+tc qdisc del dev lo parent 1:1 handle 10:
+
+
+tc filter del dev lo protocol ip parent 1: prio 1 handle 20 u32
+tc qdisc del dev lo parent 1:2 handle 20:
+*/
+
 func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, options map[string]any, cgf configuration.InstanceConfig, config configuration.ConsensusConfig) *LocalNetEmAttacker {
 	l := &LocalNetEmAttacker{
 		name:        name,
