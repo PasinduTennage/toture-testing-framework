@@ -99,6 +99,11 @@ func (l *LocalNetEmAttacker) AllowMessages(int) error {
 	return nil
 }
 
+func (l *LocalNetEmAttacker) CorruptDB() error {
+	l.ExecuteLastCommand()
+	return nil
+}
+
 func (l *LocalNetEmAttacker) ExecuteLastCommand() error {
 	if len(l.nextCommand) == 0 {
 		return nil

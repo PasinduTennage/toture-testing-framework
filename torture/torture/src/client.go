@@ -48,4 +48,8 @@ func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 		cl.attacker.AllowMessages(int(message.IntParams[0]))
 	}
 
+	if message.Operation == NewOperationTypes().CorruptDB {
+		cl.attacker.CorruptDB()
+	}
+
 }

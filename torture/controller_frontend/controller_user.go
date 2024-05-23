@@ -18,7 +18,7 @@ func StartAttack(nodes []torture.Attacker) {
 			//node.CorruptPercentagePackets(10)
 			node.Halt()
 			time.Sleep(5 * time.Second)
-			node.Reset()
+			node.CorruptDB()
 			//node.Kill()
 			//node.BufferAllMessages()
 			//node.AllowMessages(10)

@@ -7,34 +7,6 @@ import (
 	"toture-test/torture/proto"
 )
 
-type OperationTypes struct {
-	DelayAllPacketsBy          int32
-	LossPercentagePackets      int32
-	DuplicatePercentagePackets int32
-	ReorderPercentagePackets   int32
-	CorruptPercentagePackets   int32
-	Halt                       int32
-	Reset                      int32
-	Kill                       int32
-	BufferAllMessages          int32
-	AllowMessages              int32
-}
-
-func NewOperationTypes() OperationTypes {
-	return OperationTypes{
-		DelayAllPacketsBy:          1,
-		LossPercentagePackets:      2,
-		DuplicatePercentagePackets: 3,
-		ReorderPercentagePackets:   4,
-		CorruptPercentagePackets:   5,
-		Halt:                       6,
-		Reset:                      7,
-		Kill:                       8,
-		BufferAllMessages:          9,
-		AllowMessages:              10,
-	}
-}
-
 type Node struct {
 	name    int64
 	backend *TortureController
@@ -129,6 +101,13 @@ func (n *Node) AllowMessages(num_messages int) error {
 	n.backend.sendMessage(n.name, &proto.Message{
 		Operation: NewOperationTypes().AllowMessages,
 		IntParams: []int32{int32(num_messages)},
+	})
+	return nil
+}
+
+func (n *Node) CorruptDB() error {
+	n.backend.sendMessage(n.name, &proto.Message{
+		Operation: NewOperationTypes().CorruptDB,
 	})
 	return nil
 }
