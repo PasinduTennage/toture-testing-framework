@@ -52,4 +52,8 @@ func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 		cl.attacker.CorruptDB()
 	}
 
+	if message.Operation == NewOperationTypes().Exit {
+		cl.attacker.Exit()
+	}
+
 }

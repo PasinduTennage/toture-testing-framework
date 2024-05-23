@@ -23,6 +23,8 @@ func StartAttack(nodes []torture.Attacker) {
 			//node.BufferAllMessages()
 			//node.AllowMessages(10)
 		}
-
+	}
+	for _, node := range nodes {
+		node.Exit()
 	}
 }

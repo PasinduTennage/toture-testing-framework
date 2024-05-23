@@ -38,11 +38,10 @@ func main() {
 		cl.NetworkInit()
 		cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker(int(*name), *debugOn, *debugLevel, nil, *cfg))
 		cl.ConnectToController()
-		time.Sleep(10 * time.Second)
+		/*to avoid exiting the main thread*/
+		for true {
+			time.Sleep(10 * time.Second)
+		}
 	}
 
-	/*to avoid exiting the main thread*/
-	for true {
-		time.Sleep(10 * time.Second)
-	}
 }

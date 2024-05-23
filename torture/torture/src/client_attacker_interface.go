@@ -25,6 +25,8 @@ type Attacker interface {
 	BufferAllMessages() error             // buffer all messages
 	AllowMessages(int) error              // allow num_messages messages
 	CorruptDB() error                     // corrupt the internal database
+
+	Exit() error // kill self attacker client
 }
 
 type OperationTypes struct {
@@ -39,6 +41,8 @@ type OperationTypes struct {
 	BufferAllMessages          int32
 	AllowMessages              int32
 	CorruptDB                  int32
+
+	Exit int32
 }
 
 func NewOperationTypes() OperationTypes {
@@ -54,5 +58,6 @@ func NewOperationTypes() OperationTypes {
 		BufferAllMessages:          9,
 		AllowMessages:              10,
 		CorruptDB:                  11,
+		Exit:                       12,
 	}
 }

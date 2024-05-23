@@ -2,6 +2,7 @@ package attacker_impl
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"toture-test/torture/configuration"
 	"toture-test/torture/util"
@@ -101,6 +102,12 @@ func (l *LocalNetEmAttacker) AllowMessages(int) error {
 
 func (l *LocalNetEmAttacker) CorruptDB() error {
 	l.ExecuteLastCommand()
+	return nil
+}
+
+func (l *LocalNetEmAttacker) Exit() error {
+	l.ExecuteLastCommand()
+	os.Exit(0)
 	return nil
 }
 
