@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"toture-test/torture/configuration"
 	"toture-test/torture/util"
 )
@@ -20,7 +21,7 @@ type LocalNetEmAttacker struct {
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
 
-func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, options map[string]any, cgf configuration.InstanceConfig) *LocalNetEmAttacker {
+func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, options map[string]any, cgf configuration.InstanceConfig, config configuration.ConsensusConfig) *LocalNetEmAttacker {
 	l := &LocalNetEmAttacker{
 		name:        name,
 		debugOn:     debugOn,
@@ -29,19 +30,24 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, options map[s
 		nextCommand: []string{},
 	}
 
-	for i := 0; i < len(cgf.Peers); i++ {
-		if cgf.Peers[i].Name == strconv.Itoa(name) {
-			l.ports_under_attack = cgf.Peers[i].REPLICA_PORTS
-			break
-		}
+	v, ok := config.Options["ports"]
+	if !ok || v == "NA" {
+		panic("local netem attacker requires ports to be specified")
 	}
+	l.ports_under_attack = strings.Split(v, " ")
+
 	if len(l.ports_under_attack) == 0 {
 		panic("No ports to attack")
 	}
 
-	fmt.Printf("Ports under attack for client %v is: %v\n", name, l.ports_under_attack)
+	fmt.Printf("Ports under attack for NetEm client %v is: %v\n", name, l.ports_under_attack)
 
-	l.process_id = strconv.Itoa(util.GetProcessID(l.ports_under_attack[0]))
+	v, ok = config.Options["process_id"]
+	if !ok || v == "NA" {
+		l.process_id = strconv.Itoa(util.GetProcessID(l.ports_under_attack[0]))
+	} else {
+		l.process_id = v
+	}
 
 	fmt.Printf("Process ID under attack: %v\n", l.process_id)
 

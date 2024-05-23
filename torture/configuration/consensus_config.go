@@ -7,12 +7,12 @@ import (
 )
 
 type ConsensusConfig struct {
-	options map[string]string
+	Options map[string]string
 }
 
 func NewConsensusConfig(fname string) (*ConsensusConfig, error) {
 	cfg := ConsensusConfig{
-		options: make(map[string]string),
+		Options: make(map[string]string),
 	}
 
 	file, err := os.Open(fname)
@@ -46,7 +46,7 @@ func NewConsensusConfig(fname string) (*ConsensusConfig, error) {
 	for _, line := range lines {
 		// Split the line by the space character
 		parts := strings.Split(line, "-")
-		cfg.options[parts[0]] = parts[1]
+		cfg.Options[parts[0]] = parts[1]
 	}
 
 	return &cfg, nil

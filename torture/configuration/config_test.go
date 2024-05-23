@@ -91,7 +91,7 @@ func TestNewConsensusConfig(t *testing.T) {
 				fname: "/home/pasindu/Documents/toture-testing-consensus/torture/configuration/consensus_config/1.cfg",
 			},
 			want: &ConsensusConfig{
-				options: map[string]string{
+				Options: map[string]string{
 					"name":       "1",
 					"ip":         "0.0.0.0",
 					"ports":      "10000 10001 10002 10003",
@@ -110,7 +110,7 @@ func TestNewConsensusConfig(t *testing.T) {
 				t.Errorf("NewConsensusConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !equalMaps(got.options, tt.want.options) {
+			if !equalMaps(got.Options, tt.want.Options) {
 				t.Errorf("NewConsensusConfig() got = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("NewConsensusConfig() got = %v", got)
