@@ -19,7 +19,7 @@ func StartAttack(nodes []torture.Attacker) {
 			node.Halt()
 			time.Sleep(5 * time.Second)
 			node.CorruptDB()
-			//node.Kill()
+			node.Kill()
 			//node.BufferAllMessages()
 			//node.AllowMessages(10)
 		}

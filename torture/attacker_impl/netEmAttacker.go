@@ -92,7 +92,7 @@ func (l *LocalNetEmAttacker) Reset() error {
 
 func (l *LocalNetEmAttacker) Kill() error {
 	l.ExecuteLastCommand()
-	err := util.RunCommand("pkill", []string{"-P", l.process_id})
+	err := util.RunCommand("kill", []string{"-9", l.process_id})
 	return err
 }
 
