@@ -12,10 +12,9 @@ import (
 */
 
 type ReplicaInstance struct {
-	Name          string
-	IP            string
-	PORT          string
-	REPLICA_PORTS []string
+	Name string
+	IP   string
+	PORT string
 }
 
 type Controller struct {
@@ -65,10 +64,9 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 
 		// Create a new ReplicaInstance
 		peer := ReplicaInstance{
-			Name:          parts[0],
-			IP:            parts[1],
-			PORT:          parts[2],
-			REPLICA_PORTS: parts[3:],
+			Name: parts[0],
+			IP:   parts[1],
+			PORT: parts[2],
 		}
 
 		// Append the new ReplicaInstance to the configuration
