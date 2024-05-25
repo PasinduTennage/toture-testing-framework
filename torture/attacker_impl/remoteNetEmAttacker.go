@@ -149,6 +149,8 @@ func (r *RemoteNetEmAttacker) CorruptDB() error {
 
 func (r *RemoteNetEmAttacker) Exit() error {
 	r.ExecuteLastCommands()
+	util.RunCommand("tc", []string{"filter", "del", "dev", r.socket})
+	util.RunCommand("tc", []string{"qdisc", "del", "dev", r.socket, "root"})
 	os.Exit(0)
 	return nil
 }

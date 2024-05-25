@@ -16,6 +16,9 @@ type LocalNetEmAttacker struct {
 	nextCommands       [][]string
 	ports_under_attack []string // ports under attack
 	process_id         string   // process under attack
+	handle             string
+	parent_band        string
+	prios              []int
 }
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
@@ -45,6 +48,15 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configura
 		l.process_id = v
 	}
 	fmt.Printf("Process ID: %v, ports under attack %v\n", l.process_id, l.ports_under_attack)
+
+	// if this is the first attacker client, then initiate the root qdisc
+	if strconv.Itoa(l.name) == cgf.Peers[0].Name {
+		l.ExecuteLastCommands()
+		util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
+		util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
+		util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio"})
+	}
+
 	return l
 }
 
@@ -60,9 +72,21 @@ func (l *LocalNetEmAttacker) ExecuteLastCommands() error {
 	return err
 }
 
-func (l *LocalNetEmAttacker) DelayAllPacketsBy(int) error {
+func (l *LocalNetEmAttacker) applyHandleToEachPort() {
+	i := 0
+	for _, port := range l.ports_under_attack {
+		util.RunCommand("tc", []string{"filter", "add", "dev", "lo", "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(l.prios[i]), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
+		l.nextCommands = append(l.nextCommands, []string{"tc", "filter", "del", "dev", "lo", "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(l.prios[i]), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
+		i++
+	}
+}
+
+func (l *LocalNetEmAttacker) DelayAllPacketsBy(delay int) error {
 	l.ExecuteLastCommands()
-	return nil
+	err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(delay) + "ms"})
+	l.applyHandleToEachPort()
+	l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(delay) + "ms"})
+	return err
 }
 
 func (l *LocalNetEmAttacker) LossPercentagePackets(int) error {
@@ -119,6 +143,8 @@ func (l *LocalNetEmAttacker) CorruptDB() error {
 
 func (l *LocalNetEmAttacker) Exit() error {
 	l.ExecuteLastCommands()
+	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
+	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 	os.Exit(0)
 	return nil
 }
