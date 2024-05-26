@@ -13,8 +13,8 @@ import (
 
 func main() {
 	configFile := flag.String("config", "torture/configuration/local-config.cfg", "configuration file")
-	replicaConfigFile := flag.String("replicaConfig", "torture/configuration/consensus_config/1.cfg", "consensus configuration file (contains consensus replica information)")
-	name := flag.Int64("name", 1, "name of the torture")
+	replicaConfigFile := flag.String("replicaConfig", "torture/configuration/consensus_config/11.cfg", "consensus configuration file (contains consensus replica information)")
+	name := flag.Int64("name", 11, "name of the torture")
 	debugOn := flag.Bool("debugOn", false, "true / false")
 	debugLevel := flag.Int("debugLevel", 1, "debug level")
 	isController := flag.Bool("isController", false, "true for controller, false for client")
@@ -23,11 +23,6 @@ func main() {
 	flag.Parse()
 
 	cfg, err := configuration.NewInstanceConfig(*configFile, *name)
-	if err != nil {
-		panic(err.Error())
-	}
-	consensus_config, err := configuration.NewConsensusConfig(*replicaConfigFile)
-
 	if err != nil {
 		panic(err.Error())
 	}
@@ -41,6 +36,10 @@ func main() {
 		nodes := torture.CreateNodes(*cfg, c)
 		controller_frontend.StartAttack(nodes)
 	} else {
+		consensus_config, err := configuration.NewConsensusConfig(*replicaConfigFile)
+		if err != nil {
+			panic(err.Error())
+		}
 		cl := torture.NewClient(int(*name), *cfg, *debugOn, *debugLevel)
 		cl.NetworkInit()
 		if *attacker == "localNetEm" {

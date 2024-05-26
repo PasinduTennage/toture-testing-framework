@@ -11,17 +11,10 @@ func StartAttack(nodes []torture.Attacker) {
 	start_time := time.Now()
 	for time.Now().Sub(start_time) < 60*time.Second {
 		for _, node := range nodes {
-			//node.DelayAllPacketsBy(10)
-			//node.LossPercentagePackets(10)
-			//node.DuplicatePercentagePackets(10)
-			//node.ReorderPercentagePackets(10)
-			//node.CorruptPercentagePackets(10)
-			node.Halt()
+			node.DelayAllPacketsBy(10)
 			time.Sleep(5 * time.Second)
-			node.CorruptDB()
-			node.Kill()
-			//node.BufferAllMessages()
-			//node.AllowMessages(10)
+			node.Reset()
+			time.Sleep(3 * time.Second)
 		}
 	}
 	for _, node := range nodes {

@@ -80,7 +80,7 @@ func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig)
 	l.handle = strconv.Itoa((index + 1) * 10)
 	l.parent_band = "1:" + strconv.Itoa(3+index)
 	l.prios = []int{}
-	for i := index * 10; i < (index+1)*10; i++ {
+	for i := index*10 + 1; i < (index+1)*10; i++ {
 		l.prios = append(l.prios, i)
 	}
 }

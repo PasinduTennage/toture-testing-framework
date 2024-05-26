@@ -38,13 +38,16 @@ func GetProcessID(port string) int {
 func RunCommand(name string, arg []string) error {
 	cmd := exec.Command(name, arg...)
 	if cmd.Err != nil {
-		fmt.Println("Error running command " + name + " with arguments " + strings.Join(arg, " ") + " " + cmd.Err.Error() + "\n")
+		fmt.Println("Error running command " + name + strings.Join(arg, " ") + " " + cmd.Err.Error() + "\n")
 		return cmd.Err
 	}
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("Error running command " + name + " with arguments " + strings.Join(arg, " ") + " " + err.Error() + "\n")
+		fmt.Println("Error running command " + name + strings.Join(arg, " ") + " " + err.Error() + "\n")
 		return err
+	} else {
+		fmt.Println("Command successful " + name + " " + strings.Join(arg, " ") + "\n")
 	}
+
 	return nil
 }
