@@ -38,7 +38,7 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configura
 	l.ports_under_attack = strings.Split(v, " ")
 
 	if len(l.ports_under_attack) == 0 {
-		panic("No ports to attack")
+		panic("no ports to attack")
 	}
 
 	v, ok = config.Options["process_id"]
@@ -49,22 +49,47 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configura
 	}
 	fmt.Printf("Process ID: %v, ports under attack %v\n", l.process_id, l.ports_under_attack)
 
+	l.Init(cgf)
+
+	l.setNetEmVariables(cgf)
+
+	return l
+}
+
+func (l *LocalNetEmAttacker) Init(cgf configuration.InstanceConfig) {
 	// if this is the first attacker client, then initiate the root qdisc
 	if strconv.Itoa(l.name) == cgf.Peers[0].Name {
 		l.ExecuteLastCommands()
 		util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
 		util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
-		util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio"})
+		util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio", "bands", strconv.Itoa(3 + len(cgf.Peers))})
 	}
+}
 
-	return l
+func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig) {
+	index := -1
+	for i, peer := range cgf.Peers {
+		if peer.Name == strconv.Itoa(l.name) {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		panic("could not find the peer in the configuration")
+	}
+	l.handle = strconv.Itoa((index + 1) * 10)
+	l.parent_band = "1:" + strconv.Itoa(3+index)
+	l.prios = []int{}
+	for i := index * 10; i < (index+1)*10; i++ {
+		l.prios = append(l.prios, i)
+	}
 }
 
 func (l *LocalNetEmAttacker) ExecuteLastCommands() error {
 	var err error
 	for i := 0; i < len(l.nextCommands); i++ {
 		if len(l.nextCommands[i]) == 0 {
-			return nil
+			continue
 		}
 		err = util.RunCommand(l.nextCommands[i][0], l.nextCommands[i][1:])
 	}
