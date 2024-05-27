@@ -1,4 +1,4 @@
-duration=$1
+timeout=$1
 
 dummy_path="dummy/bin/dummy"
 
@@ -14,8 +14,8 @@ nohup ./${dummy_path} --name 5 &
 
 echo "Started 5 dummy replicas"
 
-sleep ${duration}
+sleep ${timeout}
 
 pkill dummy; pkill dummy; pkill dummy; pkill dummy; pkill dummy
-
-echo "Killed previously running instances"
+rm nohup.out
+echo "Killed all dummy servers"

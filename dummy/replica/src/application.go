@@ -1,6 +1,7 @@
 package dummy
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -21,8 +22,8 @@ func (pr *Proxy) handleMessage(message *Message, sender int32) {
 			}
 			avg = avg / int64(len(pr.receivedLatency))
 			thr := float64(len(pr.receivedLatency)) / (time.Now().Sub(pr.lastStarTime).Seconds())
-			//fmt.Printf("Average latency: %d micro seconds\n", avg)
-			//fmt.Printf("Average throughput: %v requests per second\n\n", float64(len(pr.receivedLatency))/(time.Now().Sub(pr.lastStarTime).Seconds()))
+			fmt.Printf("Average latency: %d micro seconds\n", avg)
+			fmt.Printf("Average throughput: %v requests per second\n\n", float64(len(pr.receivedLatency))/(time.Now().Sub(pr.lastStarTime).Seconds()))
 			pr.ui_stats.latency = float32(avg)
 			pr.ui_stats.throughput = float32(thr)
 			pr.lastStarTime = time.Now()
