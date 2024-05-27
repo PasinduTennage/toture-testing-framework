@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/rs/cors"
 	"log"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
@@ -23,7 +22,7 @@ var (
 	mu      sync.Mutex
 )
 
-func ListenFrontEnd(name string) {
+func ListenFrontEnd(name string, pr *Proxy) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/metrics", handleMetrics)
@@ -35,7 +34,7 @@ func ListenFrontEnd(name string) {
 
 	handler := c.Handler(mux)
 
-	go generateMetrics()
+	go generateMetrics(pr)
 
 	log.Println("Server starting on :" + name)
 	log.Fatal(http.ListenAndServe(":"+name, handler))
@@ -50,14 +49,14 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(metrics)
 }
 
-func generateMetrics() {
+func generateMetrics(pr *Proxy) {
 	for {
 		mu.Lock()
 		metrics = Metrics{
-			Throughput: rand.Float64() * 100,
-			Latency:    rand.Float64() * 100,
-			CPUUsage:   rand.Float64() * 100,
-			MemUsage:   rand.Float64() * 100,
+			Throughput: float64(pr.ui_stats.throughput),
+			Latency:    float64(pr.ui_stats.latency),
+			CPUUsage:   float64(pr.ui_stats.cpu),
+			MemUsage:   float64(pr.ui_stats.mem),
 		}
 		mu.Unlock()
 		time.Sleep(1 * time.Second)
@@ -65,5 +64,5 @@ func generateMetrics() {
 }
 
 func DoUi(pr *Proxy) {
-	ListenFrontEnd(strconv.FormatInt(pr.name*10000+100, 10))
+	ListenFrontEnd(strconv.FormatInt(pr.name*10000+100, 10), pr)
 }

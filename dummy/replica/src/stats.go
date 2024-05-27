@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,7 +15,8 @@ import (
 func (pr *Proxy) printMemoryUsage() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	fmt.Printf("\nMemory Allocs = %v MiB\n", bToMb(m.Alloc))
+	//fmt.Printf("\nMemory Allocs = %v MiB\n", bToMb(m.Alloc))
+	pr.ui_stats.mem = float32(bToMb(m.Alloc))
 }
 
 func bToMb(b uint64) uint64 {
@@ -31,7 +33,11 @@ func (pr *Proxy) printCPUUsage() {
 		fmt.Println("Error getting CPU usage:", err)
 		return
 	}
-	fmt.Printf("CPU Usage: %s\n\n", strings.Split(string(out), "\n")[1])
+	//fmt.Printf("CPU Usage: %s\n\n", strings.Split(string(out), "\n")[1])
+	cpu := strings.Split(string(out), "\n")[1]
+	// convert cpu to float32
+	f, err := strconv.ParseFloat(cpu, 64)
+	pr.ui_stats.cpu = float32(f)
 }
 
 // write state

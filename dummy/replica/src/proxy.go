@@ -10,6 +10,13 @@ import (
 	"toture-test/dummy/configuration"
 )
 
+type UI_Stats struct {
+	throughput float32
+	latency    float32
+	cpu        float32
+	mem        float32
+}
+
 // Proxy is the main struct of the proxy
 type Proxy struct {
 	name        int64 // unique node id
@@ -32,6 +39,8 @@ type Proxy struct {
 	incomingChan chan *ReceivedMessage // all incoming messages are sent to this channel
 
 	counter int64 // to create unique message index
+
+	ui_stats UI_Stats
 }
 
 // each time a new request is sent, a Request object is created and stored in sent
@@ -63,6 +72,12 @@ func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugL
 		receivedLatency: make([]int64, 0),
 		incomingChan:    make(chan *ReceivedMessage, 100000),
 		counter:         0,
+		ui_stats: UI_Stats{
+			throughput: 0,
+			latency:    0,
+			cpu:        0,
+			mem:        0,
+		},
 	}
 
 	// initialize the addrList
