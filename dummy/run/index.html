@@ -16,6 +16,7 @@
 </head>
 <body>
 <h1>Dummy Replica</h1>
+<div id="name" class="label">Dummy Port: p</div>
 <div id="throughput" class="label">Average Throughput: t</div>
 <div id="latency" class="label">Average Latency: l</div>
 <div id="cpu-usage" class="label">CPU Usage: c</div>
@@ -42,6 +43,7 @@
 
     // Fetch metrics every second with the specified port
     const port = new URLSearchParams(window.location.search).get('port')
+    document.getElementById('name').textContent = `Dummy Port: ${port}`;
     setInterval(() => fetchMetrics(port), 500);
 
     // Initial fetch
