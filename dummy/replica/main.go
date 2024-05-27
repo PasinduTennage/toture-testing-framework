@@ -23,7 +23,7 @@ func main() {
 	}
 
 	proxyInstance := dummy.NewProxy(*name, *cfg, *debugOn, *debugLevel)
-
+	go dummy.DoUi(proxyInstance)
 	proxyInstance.NetworkInit()
 	proxyInstance.Run()
 	time.Sleep(10 * time.Second)

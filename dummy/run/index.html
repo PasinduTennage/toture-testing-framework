@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dummy Replica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .label {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>System Monitor</h1>
+<div id="throughput" class="label">Average Throughput: t</div>
+<div id="latency" class="label">Average Latency: l</div>
+<div id="cpu-usage" class="label">CPU Usage: c</div>
+<div id="memory-usage" class="label">Memory Usage: m</div>
+
+<script>
+    async function fetchMetrics(port) {
+        try {
+            const response = await fetch(`http://localhost:${port}/metrics`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+           //  console.log('Response:', data); // Print the response text
+
+            document.getElementById('throughput').textContent = `Average Throughput: ${data.throughput}`;
+            document.getElementById('latency').textContent = `Average Latency: ${data.latency}`;
+            document.getElementById('cpu-usage').textContent = `CPU Usage: ${data.cpuUsage}%`;
+            document.getElementById('memory-usage').textContent = `Memory Usage: ${data.memUsage}%`;
+        } catch (error) {
+            console.error('Error fetching metrics:', error);
+        }
+    }
+
+    // Fetch metrics every second with the specified port
+    const port = new URLSearchParams(window.location.search).get('port')
+    setInterval(() => fetchMetrics(port), 500);
+
+    // Initial fetch
+    fetchMetrics(port);
+</script>
+</body>
+</html>
