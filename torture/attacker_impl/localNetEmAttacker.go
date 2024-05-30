@@ -179,8 +179,33 @@ func (l *LocalNetEmAttacker) LossPackets(loss int, on bool) error {
 	}
 }
 
-func (l *LocalNetEmAttacker) DuplicatePackets(int, bool) error {
-	return nil
+func (l *LocalNetEmAttacker) DuplicatePackets(dup int, on bool) error {
+
+	if !on {
+		if !l.under_attack || l.current_attack != torture.NewOperationTypes().DuplicatePackets {
+			l.sendControllerMessage("Failed to stop the duplicate attack because duplicate attack is currently not in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			l.under_attack = false
+			l.current_attack = -1
+			return nil
+		}
+	} else {
+		if l.under_attack {
+			l.sendControllerMessage("Failed to execute a duplicate attack because another attack is in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "duplicate", strconv.Itoa(dup) + "%"})
+			l.applyHandleToEachPort()
+			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "duplicate", strconv.Itoa(dup) + "%"})
+			l.under_attack = true
+			l.current_attack = torture.NewOperationTypes().DuplicatePackets
+			return err
+		}
+	}
+
 }
 
 func (l *LocalNetEmAttacker) ReorderPackets(int, bool) error {
