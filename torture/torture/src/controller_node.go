@@ -128,5 +128,5 @@ func (n *Node) CleanUp() error {
 
 func (c *TortureController) handleMessage(message *proto.Message, sender int) {
 	// print message
-	c.debug(fmt.Sprintf("Controller received message %v from %d\n", message, sender), 0)
+	fmt.Printf("Controller received message %v from %d\n", message.StrParams[0], sender)
 }
