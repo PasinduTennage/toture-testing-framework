@@ -11,7 +11,11 @@ Periodically Dummy replica prints the throughput, average latency and the resour
 To run the web front ends
 
 ```http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?port=10100```
+
 ```http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?port=20100```
+
 ```http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?port=30100```
+
 ```http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?port=40100```
+
 ```http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?port=50100```
