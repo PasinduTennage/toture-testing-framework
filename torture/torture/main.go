@@ -43,9 +43,9 @@ func main() {
 		cl := torture.NewClient(int(*name), *cfg, *debugOn, *debugLevel)
 		cl.NetworkInit()
 		if *attacker == "localNetEm" {
-			cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config))
+			cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config, cl))
 		} else if *attacker == "remoteNetEm" {
-			cl.SetAttacker(attacker_impl.NewRemoteNetEmAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config))
+			//cl.SetAttacker(attacker_impl.NewRemoteNetEmAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config))
 		}
 		cl.ConnectToController()
 		/*to avoid exiting the main thread*/

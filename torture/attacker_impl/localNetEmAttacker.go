@@ -151,19 +151,19 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
 	}
 }
 
-func (l *LocalNetEmAttacker) LossPackets(int, on bool) error {
+func (l *LocalNetEmAttacker) LossPackets(int, bool) error {
 	return nil
 }
 
-func (l *LocalNetEmAttacker) DuplicatePackets(int, on bool) error {
+func (l *LocalNetEmAttacker) DuplicatePackets(int, bool) error {
 	return nil
 }
 
-func (l *LocalNetEmAttacker) ReorderPackets(int, on bool) error {
+func (l *LocalNetEmAttacker) ReorderPackets(int, bool) error {
 	return nil
 }
 
-func (l *LocalNetEmAttacker) CorruptPackets(int, on bool) error {
+func (l *LocalNetEmAttacker) CorruptPackets(int, bool) error {
 	return nil
 }
 
