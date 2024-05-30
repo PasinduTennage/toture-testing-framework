@@ -4,6 +4,8 @@ package torture
 	Steps to add a new attack
 	1. Add the attack method in the Attacker interface in attacker_interface.go
 	2. Add a new field to OperationTypes and assign an int in NewOperationTypes in the attacker_interface.go
+	3. Add a new case in the handlerControllerMessage method in client.go
+
 
 
 

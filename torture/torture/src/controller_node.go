@@ -29,56 +29,62 @@ func CreateNodes(cfg configuration.InstanceConfig, backend *TortureController) [
 	return nodes
 }
 
-func (n *Node) DelayAllPacketsBy(delay int) error {
+func (n *Node) DelayPackets(delay int, on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().DelayAllPacketsBy,
+		Operation: NewOperationTypes().DelayPackets,
 		IntParams: []int32{int32(delay)},
+		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) LossPercentagePackets(loss_percentage int) error {
+func (n *Node) LossPackets(loss_percentage int, on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().LossPercentagePackets,
+		Operation: NewOperationTypes().LossPackets,
 		IntParams: []int32{int32(loss_percentage)},
+		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) DuplicatePercentagePackets(duplicate_percentage int) error {
+func (n *Node) DuplicatePackets(duplicate_percentage int, on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().DuplicatePercentagePackets,
+		Operation: NewOperationTypes().DuplicatePackets,
 		IntParams: []int32{int32(duplicate_percentage)},
+		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) ReorderPercentagePackets(reorder_percentage int) error {
+func (n *Node) ReorderPackets(reorder_percentage int, on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().ReorderPercentagePackets,
+		Operation: NewOperationTypes().ReorderPackets,
 		IntParams: []int32{int32(reorder_percentage)},
+		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) CorruptPercentagePackets(corrupt_percentage int) error {
+func (n *Node) CorruptPackets(corrupt_percentage int, on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().CorruptPercentagePackets,
+		Operation: NewOperationTypes().CorruptPackets,
 		IntParams: []int32{int32(corrupt_percentage)},
+		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) Halt() error {
+func (n *Node) Pause(on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().Halt,
+		Operation: NewOperationTypes().Pause,
+		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) Reset() error {
+func (n *Node) ResetAll() error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().Reset,
+		Operation: NewOperationTypes().ResetAll,
 	})
 	return nil
 }
@@ -90,9 +96,10 @@ func (n *Node) Kill() error {
 	return nil
 }
 
-func (n *Node) BufferAllMessages() error {
+func (n *Node) QueueAllMessages(on bool) error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().BufferAllMessages,
+		Operation: NewOperationTypes().QueueAllMessages,
+		On:        on,
 	})
 	return nil
 }
@@ -114,7 +121,7 @@ func (n *Node) CorruptDB() error {
 
 func (n *Node) Exit() error {
 	n.backend.sendMessage(n.name, &proto.Message{
-		Operation: NewOperationTypes().Exit,
+		Operation: EXIT,
 	})
 	return nil
 }
