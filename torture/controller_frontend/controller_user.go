@@ -13,27 +13,26 @@ func StartAttack(nodes []torture.Attacker) {
 	start_time := time.Now()
 	for time.Now().Sub(start_time) < 120*time.Second {
 		for _, node := range nodes {
-			node.DelayPackets(rand.Intn(20), true)
+			node.LossPackets(rand.Intn(20), true)
 		}
 		time.Sleep(2 * time.Second)
 		for _, node := range nodes {
-			node.DelayPackets(rand.Intn(20), true)
+			node.LossPackets(rand.Intn(20), false)
 		}
 		time.Sleep(2 * time.Second)
 		for _, node := range nodes {
-			node.Pause(true)
+			node.DelayPackets(10, true)
 		}
 		time.Sleep(2 * time.Second)
 		for _, node := range nodes {
-			node.Pause(false)
+			node.DelayPackets(10, false)
 		}
 		time.Sleep(2 * time.Second)
 		for _, node := range nodes {
-			node.DelayPackets(rand.Intn(20), false)
+			node.ResetAll()
 		}
 	}
 	for _, node := range nodes {
-		node.Kill()
 		node.CleanUp()
 	}
 	os.Exit(0)

@@ -151,8 +151,32 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
 	}
 }
 
-func (l *LocalNetEmAttacker) LossPackets(int, bool) error {
-	return nil
+func (l *LocalNetEmAttacker) LossPackets(loss int, on bool) error {
+
+	if !on {
+		if !l.under_attack || l.current_attack != torture.NewOperationTypes().LossPackets {
+			l.sendControllerMessage("Failed to stop the loss attack because loss attack is currently not in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			l.under_attack = false
+			l.current_attack = -1
+			return nil
+		}
+	} else {
+		if l.under_attack {
+			l.sendControllerMessage("Failed to execute a loss attack because another attack is in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "loss", strconv.Itoa(loss) + "%"})
+			l.applyHandleToEachPort()
+			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "loss", strconv.Itoa(loss) + "%"})
+			l.under_attack = true
+			l.current_attack = torture.NewOperationTypes().LossPackets
+			return err
+		}
+	}
 }
 
 func (l *LocalNetEmAttacker) DuplicatePackets(int, bool) error {
