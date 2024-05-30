@@ -238,8 +238,34 @@ func (l *LocalNetEmAttacker) ReorderPackets(re int, on bool) error {
 
 }
 
-func (l *LocalNetEmAttacker) CorruptPackets(int, bool) error {
+func (l *LocalNetEmAttacker) CorruptPackets(corrupt int, on bool) error {
+	if !on {
+		if !l.under_attack || l.current_attack != torture.NewOperationTypes().CorruptPackets {
+			l.sendControllerMessage("Failed to stop the corrupt attack because corrupt attack is currently not in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			l.under_attack = false
+			l.current_attack = -1
+			return nil
+		}
+	} else {
+		if l.under_attack {
+			l.sendControllerMessage("Failed to execute a corrupt attack because another attack is in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "corrupt", strconv.Itoa(corrupt) + "%"})
+			l.applyHandleToEachPort()
+			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "corrupt", strconv.Itoa(corrupt) + "%"})
+			l.under_attack = true
+			l.current_attack = torture.NewOperationTypes().CorruptPackets
+			return err
+		}
+	}
+
 	return nil
+
 }
 
 func (l *LocalNetEmAttacker) Pause(on bool) error {
