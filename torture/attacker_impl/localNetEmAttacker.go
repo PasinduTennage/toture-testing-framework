@@ -208,8 +208,34 @@ func (l *LocalNetEmAttacker) DuplicatePackets(dup int, on bool) error {
 
 }
 
-func (l *LocalNetEmAttacker) ReorderPackets(int, bool) error {
+func (l *LocalNetEmAttacker) ReorderPackets(re int, on bool) error {
+	if !on {
+		if !l.under_attack || l.current_attack != torture.NewOperationTypes().ReorderPackets {
+			l.sendControllerMessage("Failed to stop the reorder attack because reorder attack is currently not in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			l.under_attack = false
+			l.current_attack = -1
+			return nil
+		}
+	} else {
+		if l.under_attack {
+			l.sendControllerMessage("Failed to execute a reorder attack because another attack is in progress")
+			return nil
+		} else {
+			l.ExecuteLastCommands()
+			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "reorder", strconv.Itoa(re) + "%", "50%"})
+			l.applyHandleToEachPort()
+			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "reorder", strconv.Itoa(re) + "%", "50%"})
+			l.under_attack = true
+			l.current_attack = torture.NewOperationTypes().ReorderPackets
+			return err
+		}
+	}
+
 	return nil
+
 }
 
 func (l *LocalNetEmAttacker) CorruptPackets(int, bool) error {
