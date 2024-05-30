@@ -119,6 +119,13 @@ func (n *Node) CorruptDB() error {
 	return nil
 }
 
+func (n *Node) CleanUp() error {
+	n.backend.sendMessage(n.name, &proto.Message{
+		Operation: NewOperationTypes().CleanUp,
+	})
+	return nil
+}
+
 func (c *TortureController) handleMessage(message *proto.Message, sender int) {
 	// print message
 	c.debug(fmt.Sprintf("Controller received message %v from %d\n", message, sender), 0)

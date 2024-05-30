@@ -7,7 +7,6 @@ import (
 	"io"
 	"math/rand"
 	"net"
-	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -194,15 +193,4 @@ func (c *TortureController) Run() {
 		}
 	}()
 
-}
-
-// kill all executors
-
-func (c *TortureController) Exit() {
-	for e, _ := range c.clients {
-		c.sendMessage(int64(e), &proto.Message{
-			Operation: EXIT,
-		})
-	}
-	os.Exit(0)
 }

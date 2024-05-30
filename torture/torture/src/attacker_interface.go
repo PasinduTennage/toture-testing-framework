@@ -6,13 +6,7 @@ package torture
 	2. Add a new field to OperationTypes and assign an int in NewOperationTypes in the attacker_interface.go
 	3. Add a new case in the handlerControllerMessage method in client.go
 	4. Add a new method in controller_node.go
-
-
-
-
-
-
-
+	5. Add a new method in each attacker implementation
 */
 
 // Attacker interface defines the methods that an attacker should implement
@@ -28,6 +22,8 @@ type Attacker interface {
 	QueueAllMessages(bool) error      // buffer all messages
 	AllowMessages(int) error          // allow num_messages messages
 	CorruptDB() error                 // corrupt the internal database
+
+	CleanUp() error // clean up the attacker
 }
 
 type OperationTypes struct {
@@ -42,6 +38,7 @@ type OperationTypes struct {
 	QueueAllMessages int32
 	AllowMessages    int32
 	CorruptDB        int32
+	CleanUp          int32
 }
 
 func NewOperationTypes() OperationTypes {
@@ -57,7 +54,6 @@ func NewOperationTypes() OperationTypes {
 		QueueAllMessages: 9,
 		AllowMessages:    10,
 		CorruptDB:        11,
+		CleanUp:          12,
 	}
 }
-
-const EXIT = 255

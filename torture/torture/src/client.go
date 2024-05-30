@@ -53,8 +53,9 @@ func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 		cl.attacker.CorruptDB()
 	}
 
-	if message.Operation == EXIT {
+	if message.Operation == NewOperationTypes().CleanUp {
 		cl.attacker.ResetAll()
+		cl.attacker.CleanUp()
 		os.Exit(0)
 	}
 

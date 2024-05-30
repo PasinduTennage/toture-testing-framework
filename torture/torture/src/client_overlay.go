@@ -151,7 +151,7 @@ func (c *TortureClient) ConnectToController() {
 	write a message to a controller
 */
 
-func (c *TortureClient) sendControllerMessage(msg *proto.Message) {
+func (c *TortureClient) SendControllerMessage(msg *proto.Message) {
 
 	c.debug("sending message to  controller", 0)
 

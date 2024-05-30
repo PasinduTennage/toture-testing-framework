@@ -35,7 +35,6 @@ func main() {
 		time.Sleep(10 * time.Second)
 		nodes := torture.CreateNodes(*cfg, c)
 		controller_frontend.StartAttack(nodes)
-		c.Exit()
 	} else {
 		consensus_config, err := configuration.NewConsensusConfig(*replicaConfigFile)
 		if err != nil {
