@@ -306,14 +306,17 @@ func (l *LocalNetEmAttacker) Kill() error {
 }
 
 func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
+	l.sendControllerMessage("QueueAllMessages is not supported by LocalNetEmAttacker")
 	return nil
 }
 
 func (l *LocalNetEmAttacker) AllowMessages(int) error {
+	l.sendControllerMessage("AllowMessages is not supported by LocalNetEmAttacker")
 	return nil
 }
 
 func (l *LocalNetEmAttacker) CorruptDB() error {
+	l.sendControllerMessage("CorruptDB is not supported by LocalNetEmAttacker")
 	return nil
 }
 
