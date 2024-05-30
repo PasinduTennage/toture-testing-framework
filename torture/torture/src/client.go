@@ -2,6 +2,7 @@ package torture
 
 import (
 	"fmt"
+	"os"
 	"toture-test/torture/proto"
 )
 
@@ -20,28 +21,28 @@ func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 		cl.attacker.DuplicatePackets(int(message.IntParams[0]), message.On)
 	}
 
-	if message.Operation == NewOperationTypes().ReorderPercentagePackets {
-		cl.attacker.ReorderPercentagePackets(int(message.IntParams[0]))
+	if message.Operation == NewOperationTypes().ReorderPackets {
+		cl.attacker.ReorderPackets(int(message.IntParams[0]), message.On)
 	}
 
-	if message.Operation == NewOperationTypes().CorruptPercentagePackets {
-		cl.attacker.CorruptPercentagePackets(int(message.IntParams[0]))
+	if message.Operation == NewOperationTypes().CorruptPackets {
+		cl.attacker.CorruptPackets(int(message.IntParams[0]), message.On)
 	}
 
-	if message.Operation == NewOperationTypes().Halt {
-		cl.attacker.Halt()
+	if message.Operation == NewOperationTypes().Pause {
+		cl.attacker.Pause(message.On)
 	}
 
-	if message.Operation == NewOperationTypes().Reset {
-		cl.attacker.Reset()
+	if message.Operation == NewOperationTypes().ResetAll {
+		cl.attacker.ResetAll()
 	}
 
 	if message.Operation == NewOperationTypes().Kill {
 		cl.attacker.Kill()
 	}
 
-	if message.Operation == NewOperationTypes().BufferAllMessages {
-		cl.attacker.BufferAllMessages()
+	if message.Operation == NewOperationTypes().QueueAllMessages {
+		cl.attacker.QueueAllMessages(message.On)
 	}
 
 	if message.Operation == NewOperationTypes().AllowMessages {
@@ -52,8 +53,9 @@ func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 		cl.attacker.CorruptDB()
 	}
 
-	if message.Operation == NewOperationTypes().Exit {
-		cl.attacker.Exit()
+	if message.Operation == EXIT {
+		cl.attacker.ResetAll()
+		os.Exit(0)
 	}
 
 }

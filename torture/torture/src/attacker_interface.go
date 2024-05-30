@@ -53,3 +53,5 @@ func NewOperationTypes() OperationTypes {
 		CorruptDB:        11,
 	}
 }
+
+const EXIT = 255
