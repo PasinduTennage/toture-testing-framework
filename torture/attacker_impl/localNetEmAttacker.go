@@ -2,7 +2,6 @@ package attacker_impl
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"toture-test/torture/configuration"
@@ -19,16 +18,21 @@ type LocalNetEmAttacker struct {
 	handle             string
 	parent_band        string
 	prios              []int
+
+	under_attack   bool
+	current_attack int32
 }
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
 
 func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig) *LocalNetEmAttacker {
 	l := &LocalNetEmAttacker{
-		name:         name,
-		debugOn:      debugOn,
-		debugLevel:   debugLevel,
-		nextCommands: [][]string{},
+		name:           name,
+		debugOn:        debugOn,
+		debugLevel:     debugLevel,
+		nextCommands:   [][]string{},
+		under_attack:   false,
+		current_attack: -1,
 	}
 
 	v, ok := config.Options["ports"]
@@ -106,7 +110,7 @@ func (l *LocalNetEmAttacker) applyHandleToEachPort() {
 	}
 }
 
-func (l *LocalNetEmAttacker) DelayAllPacketsBy(delay int) error {
+func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
 	l.ExecuteLastCommands()
 	err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(delay) + "ms"})
 	l.applyHandleToEachPort()
@@ -114,34 +118,36 @@ func (l *LocalNetEmAttacker) DelayAllPacketsBy(delay int) error {
 	return err
 }
 
-func (l *LocalNetEmAttacker) LossPercentagePackets(int) error {
+func (l *LocalNetEmAttacker) LossPackets(int, on bool) error {
 	l.ExecuteLastCommands()
 	return nil
 }
 
-func (l *LocalNetEmAttacker) DuplicatePercentagePackets(int) error {
+func (l *LocalNetEmAttacker) DuplicatePackets(int, on bool) error {
 	l.ExecuteLastCommands()
 	return nil
 }
 
-func (l *LocalNetEmAttacker) ReorderPercentagePackets(int) error {
+func (l *LocalNetEmAttacker) ReorderPackets(int, on bool) error {
 	l.ExecuteLastCommands()
 	return nil
 }
 
-func (l *LocalNetEmAttacker) CorruptPercentagePackets(int) error {
+func (l *LocalNetEmAttacker) CorruptPackets(int, on bool) error {
 	l.ExecuteLastCommands()
 	return nil
 }
 
-func (l *LocalNetEmAttacker) Halt() error {
+func (l *LocalNetEmAttacker) Pause() error {
 	l.ExecuteLastCommands()
 	err := util.RunCommand("kill", []string{"-STOP", l.process_id})
 	l.nextCommands = [][]string{{"kill", "-CONT", l.process_id}}
 	return err
 }
 
-func (l *LocalNetEmAttacker) Reset() error {
+func (l *LocalNetEmAttacker) ResetAll() error {
+	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
+	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 	return l.ExecuteLastCommands()
 }
 
@@ -151,7 +157,7 @@ func (l *LocalNetEmAttacker) Kill() error {
 	return err
 }
 
-func (l *LocalNetEmAttacker) BufferAllMessages() error {
+func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
 	l.ExecuteLastCommands()
 	return nil
 }
@@ -163,13 +169,5 @@ func (l *LocalNetEmAttacker) AllowMessages(int) error {
 
 func (l *LocalNetEmAttacker) CorruptDB() error {
 	l.ExecuteLastCommands()
-	return nil
-}
-
-func (l *LocalNetEmAttacker) Exit() error {
-	l.ExecuteLastCommands()
-	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
-	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
-	os.Exit(0)
 	return nil
 }

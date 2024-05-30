@@ -8,16 +8,16 @@ import (
 func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 	cl.debug(fmt.Sprintf("Client received message from controller %v\n", message), 0)
 
-	if message.Operation == NewOperationTypes().DelayAllPacketsBy {
-		cl.attacker.DelayAllPacketsBy(int(message.IntParams[0]))
+	if message.Operation == NewOperationTypes().DelayPackets {
+		cl.attacker.DelayPackets(int(message.IntParams[0]), message.On)
 	}
 
-	if message.Operation == NewOperationTypes().LossPercentagePackets {
-		cl.attacker.LossPercentagePackets(int(message.IntParams[0]))
+	if message.Operation == NewOperationTypes().LossPackets {
+		cl.attacker.LossPackets(int(message.IntParams[0]), message.On)
 	}
 
-	if message.Operation == NewOperationTypes().DuplicatePercentagePackets {
-		cl.attacker.DuplicatePercentagePackets(int(message.IntParams[0]))
+	if message.Operation == NewOperationTypes().DuplicatePackets {
+		cl.attacker.DuplicatePackets(int(message.IntParams[0]), message.On)
 	}
 
 	if message.Operation == NewOperationTypes().ReorderPercentagePackets {

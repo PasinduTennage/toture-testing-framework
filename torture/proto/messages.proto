@@ -5,6 +5,7 @@ option go_package = "proto/";
 
 message Message {
   int32 operation = 1;
-  repeated int32 int_params = 2;
-  repeated string str_params = 3;
+  bool on = 2;
+  repeated int32 int_params = 3;
+  repeated string str_params = 4;
 }
