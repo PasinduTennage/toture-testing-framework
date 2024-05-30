@@ -17,19 +17,11 @@ func StartAttack(nodes []torture.Attacker) {
 		}
 		time.Sleep(2 * time.Second)
 		for _, node := range nodes {
+			node.LossPackets(rand.Intn(20), true)
+		}
+		time.Sleep(2 * time.Second)
+		for _, node := range nodes {
 			node.LossPackets(rand.Intn(20), false)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.DelayPackets(10, true)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.DelayPackets(10, false)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.ResetAll()
 		}
 	}
 	for _, node := range nodes {
