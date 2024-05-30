@@ -1,6 +1,8 @@
 package controller_frontend
 
 import (
+	"math/rand"
+	"os"
 	"time"
 	"toture-test/torture/torture/src"
 )
@@ -9,9 +11,26 @@ import (
 
 func StartAttack(nodes []torture.Attacker) {
 	start_time := time.Now()
-	for time.Now().Sub(start_time) < 60*time.Second {
+	for time.Now().Sub(start_time) < 120*time.Second {
 		for _, node := range nodes {
-			node.DelayPackets(10, true)
+			node.DelayPackets(rand.Intn(20), true)
+		}
+		time.Sleep(2 * time.Second)
+		for _, node := range nodes {
+			node.DelayPackets(rand.Intn(20), false)
+		}
+		time.Sleep(2 * time.Second)
+		for _, node := range nodes {
+			node.Pause(true)
+		}
+		time.Sleep(2 * time.Second)
+		for _, node := range nodes {
+			node.Pause(false)
 		}
 	}
+	for _, node := range nodes {
+		node.Kill()
+		node.CleanUp()
+	}
+	os.Exit(0)
 }
