@@ -32,7 +32,7 @@ type LocalNetEmAttacker struct {
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
 
-func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig) *LocalNetEmAttacker {
+func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalNetEmAttacker {
 	l := &LocalNetEmAttacker{
 		name:           name,
 		debugOn:        debugOn,
@@ -40,6 +40,7 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configura
 		nextCommands:   [][]string{},
 		under_attack:   false,
 		current_attack: -1,
+		c:              c,
 	}
 
 	v, ok := config.Options["ports"]
@@ -67,10 +68,6 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configura
 	return l
 }
 
-func (l *LocalNetEmAttacker) SetClient(c *torture.TortureClient) {
-	l.c = c
-}
-
 func (l *LocalNetEmAttacker) Init(cgf configuration.InstanceConfig) {
 	// if this is the first attacker client, then initiate the root qdisc
 	if strconv.Itoa(l.name) == cgf.Peers[0].Name {
@@ -94,7 +91,7 @@ func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig)
 	l.handle = strconv.Itoa((index + 1) * 10)
 	l.parent_band = "1:" + strconv.Itoa(3+index)
 	l.prios = []int{}
-	for i := index*10 + 1; i < (index+1)*10; i++ {
+	for i := index*10 + 1; i < (index+1)*10; i++ { //assumes maximum number of ports to be 10 per consensus replica
 		l.prios = append(l.prios, i)
 	}
 }
@@ -120,7 +117,7 @@ func (l *LocalNetEmAttacker) applyHandleToEachPort() {
 	}
 }
 
-func (l *LocalNetEmAttacker) sendControllerFailure(m string) {
+func (l *LocalNetEmAttacker) sendControllerMessage(m string) {
 	l.c.SendControllerMessage(&proto.Message{
 		StrParams: []string{m},
 	})
@@ -130,7 +127,7 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
 
 	if !on {
 		if !l.under_attack || l.current_attack != torture.NewOperationTypes().DelayPackets {
-			l.sendControllerFailure("Failed to stop the delay attack because delay attack is currently not in progress")
+			l.sendControllerMessage("Failed to stop the delay attack because delay attack is currently not in progress")
 			return nil
 		} else {
 			l.ExecuteLastCommands()
@@ -140,7 +137,7 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
 		}
 	} else {
 		if l.under_attack {
-			l.sendControllerFailure("Failed to execute a delay attack because another attack is in progress")
+			l.sendControllerMessage("Failed to execute a delay attack because another attack is in progress")
 			return nil
 		} else {
 			l.ExecuteLastCommands()
@@ -155,22 +152,18 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
 }
 
 func (l *LocalNetEmAttacker) LossPackets(int, on bool) error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) DuplicatePackets(int, on bool) error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) ReorderPackets(int, on bool) error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) CorruptPackets(int, on bool) error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
@@ -178,7 +171,7 @@ func (l *LocalNetEmAttacker) Pause(on bool) error {
 
 	if !on {
 		if !l.under_attack || l.current_attack != torture.NewOperationTypes().Pause {
-			l.sendControllerFailure("Failed to stop the pause attack because pause attack is currently not in progress")
+			l.sendControllerMessage("Failed to stop the pause attack because pause attack is currently not in progress")
 			return nil
 		} else {
 			l.ExecuteLastCommands()
@@ -188,7 +181,7 @@ func (l *LocalNetEmAttacker) Pause(on bool) error {
 		}
 	} else {
 		if l.under_attack {
-			l.sendControllerFailure("Failed to execute a pause attack because another attack is in progress")
+			l.sendControllerMessage("Failed to execute a pause attack because another attack is in progress")
 			return nil
 		} else {
 			l.ExecuteLastCommands()
@@ -202,8 +195,6 @@ func (l *LocalNetEmAttacker) Pause(on bool) error {
 }
 
 func (l *LocalNetEmAttacker) ResetAll() error {
-	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
-	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 	return l.ExecuteLastCommands()
 }
 
@@ -214,20 +205,19 @@ func (l *LocalNetEmAttacker) Kill() error {
 }
 
 func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) AllowMessages(int) error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) CorruptDB() error {
-	l.ExecuteLastCommands()
 	return nil
 }
 
 func (l *LocalNetEmAttacker) CleanUp() error {
-
+	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
+	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
+	return nil
 }
