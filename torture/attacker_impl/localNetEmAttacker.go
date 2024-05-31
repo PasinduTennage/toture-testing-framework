@@ -301,6 +301,7 @@ func (l *LocalNetEmAttacker) ResetAll() error {
 
 func (l *LocalNetEmAttacker) Kill() error {
 	l.ExecuteLastCommands()
+	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
 	return err
 }
