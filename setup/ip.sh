@@ -1,4 +1,3 @@
-
 cert="/home/pasindu/Pictures/pasindu"
 
 replica1_name=10.156.33.140
@@ -73,5 +72,8 @@ replica23=pasindu@${replica23_name}
 replica24_name=10.156.33.213
 replica24=pasindu@${replica24_name}
 
-replicas=(${replica1} ${replica2} ${replica3} ${replica4} ${replica5} ${replica6} ${replica7} ${replica8} ${replica9} ${replica10} ${replica11} ${replica12} ${replica13} ${replica14} ${replica15} ${replica16} ${replica17} ${replica18} ${replica19} ${replica20} ${replica21} ${replica22} ${replica23} ${replica24})
+#replicas=(${replica1} ${replica2} ${replica3} ${replica4} ${replica5} ${replica6} ${replica7} ${replica8} ${replica9} ${replica10} ${replica11} ${replica12} ${replica13} ${replica14} ${replica15} ${replica16} ${replica17} ${replica18} ${replica19} ${replica20} ${replica21} ${replica22} ${replica23} ${replica24})
+replicas=(${replica1} ${replica2} ${replica3} ${replica4} ${replica5} ${replica6})
 replica_names=(${replica1_name} ${replica2_name} ${replica3_name} ${replica4_name} ${replica5_name} ${replica6_name} ${replica7_name} ${replica8_name} ${replica9_name} ${replica10_name} ${replica11_name} ${replica12_name} ${replica13_name} ${replica14_name} ${replica15_name} ${replica16_name} ${replica17_name} ${replica18_name} ${replica19_name} ${replica20_name}  ${replica21_name} ${replica22_name} ${replica23_name} ${replica24_name})
+
+username="pasindu"
