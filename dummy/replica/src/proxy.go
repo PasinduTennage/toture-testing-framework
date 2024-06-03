@@ -41,6 +41,8 @@ type Proxy struct {
 	counter int64 // to create unique message index
 
 	ui_stats UI_Stats
+
+	startTime time.Time
 }
 
 // each time a new request is sent, a Request object is created and stored in sent
