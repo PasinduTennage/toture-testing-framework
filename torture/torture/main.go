@@ -46,6 +46,8 @@ func main() {
 			cl.SetAttacker(attacker_impl.NewLocalNetEmAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config, cl))
 		} else if *attacker == "remoteNetEm" {
 			cl.SetAttacker(attacker_impl.NewRemoteNetEmAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config, cl))
+		} else {
+			panic("invalid")
 		}
 		cl.ConnectToController()
 		/*to avoid exiting the main thread*/
