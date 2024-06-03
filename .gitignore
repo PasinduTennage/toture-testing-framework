@@ -1,6 +1,7 @@
 torture/bin/
 dummy/bin/
 vendor/
+logs/
 
 *.log
 *.csv

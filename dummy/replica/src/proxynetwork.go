@@ -3,6 +3,7 @@ package dummy
 import (
 	"bufio"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math/rand"
 	"net"
@@ -34,7 +35,7 @@ func (pr *Proxy) waitForConnections() {
 			if err != nil {
 				panic(err.Error())
 			}
-			pr.debug("Listening to messages on "+la, 0)
+			fmt.Printf("Listening to messages on " + la + "\n")
 
 			for true {
 				conn, err := listener.Accept()
