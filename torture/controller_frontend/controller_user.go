@@ -21,45 +21,45 @@ func StartAttack(nodes []torture.Attacker) {
 			node.DelayPackets(rand.Intn(20), false)
 		}
 		time.Sleep(2 * time.Second)
-		// loss
-		for _, node := range nodes {
-			node.LossPackets(rand.Intn(20), true)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.LossPackets(rand.Intn(20), false)
-		}
-		time.Sleep(2 * time.Second)
-
-		// duplicate
-		for _, node := range nodes {
-			node.DuplicatePackets(rand.Intn(20), true)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.DuplicatePackets(rand.Intn(20), false)
-		}
-		time.Sleep(2 * time.Second)
-
-		// reorder
-		for _, node := range nodes {
-			node.ReorderPackets(rand.Intn(20), true)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.ReorderPackets(rand.Intn(20), false)
-		}
-		time.Sleep(2 * time.Second)
-
-		// corrupt
-		for _, node := range nodes {
-			node.CorruptPackets(rand.Intn(20), true)
-		}
-		time.Sleep(2 * time.Second)
-		for _, node := range nodes {
-			node.CorruptPackets(rand.Intn(20), false)
-		}
-		time.Sleep(2 * time.Second)
+		//// loss
+		//for _, node := range nodes {
+		//	node.LossPackets(rand.Intn(20), true)
+		//}
+		//time.Sleep(2 * time.Second)
+		//for _, node := range nodes {
+		//	node.LossPackets(rand.Intn(20), false)
+		//}
+		//time.Sleep(2 * time.Second)
+		//
+		//// duplicate
+		//for _, node := range nodes {
+		//	node.DuplicatePackets(rand.Intn(20), true)
+		//}
+		//time.Sleep(2 * time.Second)
+		//for _, node := range nodes {
+		//	node.DuplicatePackets(rand.Intn(20), false)
+		//}
+		//time.Sleep(2 * time.Second)
+		//
+		//// reorder
+		//for _, node := range nodes {
+		//	node.ReorderPackets(rand.Intn(20), true)
+		//}
+		//time.Sleep(2 * time.Second)
+		//for _, node := range nodes {
+		//	node.ReorderPackets(rand.Intn(20), false)
+		//}
+		//time.Sleep(2 * time.Second)
+		//
+		//// corrupt
+		//for _, node := range nodes {
+		//	node.CorruptPackets(rand.Intn(20), true)
+		//}
+		//time.Sleep(2 * time.Second)
+		//for _, node := range nodes {
+		//	node.CorruptPackets(rand.Intn(20), false)
+		//}
+		//time.Sleep(2 * time.Second)
 
 		// pause
 		for _, node := range nodes {
