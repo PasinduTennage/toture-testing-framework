@@ -41,7 +41,7 @@ func NewRemoteNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configur
 		c:          c,
 	}
 
-	v, ok := config.Options["adapter"]
+	v, ok := config.Options["socket"]
 	if !ok || v == "NA" {
 		panic("remote netem adapter requires adapter to be specified")
 	} else {
