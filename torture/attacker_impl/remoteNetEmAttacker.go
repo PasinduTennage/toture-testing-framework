@@ -172,7 +172,7 @@ func (l *RemoteNetEmAttacker) Pause(on bool) error {
 	if on && !l.stopped {
 		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
 		l.stopped = true
-		l.nextCommands = [][]string{{"kill", "-CONT", l.process_id}}
+		l.nextCommands = append(l.nextCommands, []string{"kill", "-CONT", l.process_id})
 		return err
 	} else if !on && l.stopped {
 		l.stopped = false
