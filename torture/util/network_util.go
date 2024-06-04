@@ -46,7 +46,7 @@ func RunCommand(name string, arg []string) error {
 		fmt.Println("Error running command " + name + " " + strings.Join(arg, " ") + " " + err.Error() + "\n")
 		return err
 	} else {
-		fmt.Println("Command successful " + name + " " + strings.Join(arg, " ") + "\n")
+		//fmt.Println("Command successful " + name + " " + strings.Join(arg, " ") + "\n")
 	}
 
 	return nil
