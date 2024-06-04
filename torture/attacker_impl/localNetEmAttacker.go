@@ -24,23 +24,33 @@ type LocalNetEmAttacker struct {
 	parent_band string
 	prios       []int
 
-	under_attack   bool
-	current_attack int32
+	stopped bool
 
 	c *torture.TortureClient
+
+	delayPackets     int
+	lossPackets      int
+	duplicatePackets int
+	reorderPackets   int
+	corruptPackets   int
 }
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
 
 func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalNetEmAttacker {
 	l := &LocalNetEmAttacker{
-		name:           name,
-		debugOn:        debugOn,
-		debugLevel:     debugLevel,
-		nextCommands:   [][]string{},
-		under_attack:   false,
-		current_attack: -1,
-		c:              c,
+		name:         name,
+		debugOn:      debugOn,
+		debugLevel:   debugLevel,
+		nextCommands: [][]string{},
+		stopped:      false,
+		c:            c,
+
+		delayPackets:     0,
+		lossPackets:      0,
+		duplicatePackets: 0,
+		reorderPackets:   0,
+		corruptPackets:   0,
 	}
 
 	v, ok := config.Options["ports"]
@@ -123,176 +133,57 @@ func (l *LocalNetEmAttacker) sendControllerMessage(m string) {
 	})
 }
 
-func (l *LocalNetEmAttacker) DelayPackets(delay int, on bool) error {
-
-	if !on {
-		if !l.under_attack || l.current_attack != torture.NewOperationTypes().DelayPackets {
-			l.sendControllerMessage("Failed to stop the delay attack because delay attack is currently not in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			l.under_attack = false
-			l.current_attack = -1
-			return nil
-		}
-	} else {
-		if l.under_attack {
-			l.sendControllerMessage("Failed to execute a delay attack because another attack is in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(delay) + "ms"})
-			l.applyHandleToEachPort()
-			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(delay) + "ms"})
-			l.under_attack = true
-			l.current_attack = torture.NewOperationTypes().DelayPackets
-			return err
-		}
-	}
+func (l *LocalNetEmAttacker) SetNewHandler() error {
+	err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
+	l.applyHandleToEachPort()
+	l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
+	return err
 }
 
-func (l *LocalNetEmAttacker) LossPackets(loss int, on bool) error {
-
-	if !on {
-		if !l.under_attack || l.current_attack != torture.NewOperationTypes().LossPackets {
-			l.sendControllerMessage("Failed to stop the loss attack because loss attack is currently not in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			l.under_attack = false
-			l.current_attack = -1
-			return nil
-		}
-	} else {
-		if l.under_attack {
-			l.sendControllerMessage("Failed to execute a loss attack because another attack is in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "loss", strconv.Itoa(loss) + "%"})
-			l.applyHandleToEachPort()
-			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "loss", strconv.Itoa(loss) + "%"})
-			l.under_attack = true
-			l.current_attack = torture.NewOperationTypes().LossPackets
-			return err
-		}
-	}
-}
-
-func (l *LocalNetEmAttacker) DuplicatePackets(dup int, on bool) error {
-
-	if !on {
-		if !l.under_attack || l.current_attack != torture.NewOperationTypes().DuplicatePackets {
-			l.sendControllerMessage("Failed to stop the duplicate attack because duplicate attack is currently not in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			l.under_attack = false
-			l.current_attack = -1
-			return nil
-		}
-	} else {
-		if l.under_attack {
-			l.sendControllerMessage("Failed to execute a duplicate attack because another attack is in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "duplicate", strconv.Itoa(dup) + "%"})
-			l.applyHandleToEachPort()
-			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "duplicate", strconv.Itoa(dup) + "%"})
-			l.under_attack = true
-			l.current_attack = torture.NewOperationTypes().DuplicatePackets
-			return err
-		}
-	}
+func (l *LocalNetEmAttacker) DelayPackets(delay int) error {
+	l.ExecuteLastCommands()
+	l.delayPackets = delay
+	return l.SetNewHandler()
 
 }
 
-func (l *LocalNetEmAttacker) ReorderPackets(re int, on bool) error {
-	if !on {
-		if !l.under_attack || l.current_attack != torture.NewOperationTypes().ReorderPackets {
-			l.sendControllerMessage("Failed to stop the reorder attack because reorder attack is currently not in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			l.under_attack = false
-			l.current_attack = -1
-			return nil
-		}
-	} else {
-		if l.under_attack {
-			l.sendControllerMessage("Failed to execute a reorder attack because another attack is in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "reorder", strconv.Itoa(re) + "%", "50%"})
-			l.applyHandleToEachPort()
-			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "reorder", strconv.Itoa(re) + "%", "50%"})
-			l.under_attack = true
-			l.current_attack = torture.NewOperationTypes().ReorderPackets
-			return err
-		}
-	}
-
-	return nil
+func (l *LocalNetEmAttacker) LossPackets(loss int) error {
+	l.ExecuteLastCommands()
+	l.lossPackets = loss
+	return l.SetNewHandler()
 
 }
 
-func (l *LocalNetEmAttacker) CorruptPackets(corrupt int, on bool) error {
-	if !on {
-		if !l.under_attack || l.current_attack != torture.NewOperationTypes().CorruptPackets {
-			l.sendControllerMessage("Failed to stop the corrupt attack because corrupt attack is currently not in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			l.under_attack = false
-			l.current_attack = -1
-			return nil
-		}
-	} else {
-		if l.under_attack {
-			l.sendControllerMessage("Failed to execute a corrupt attack because another attack is in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "corrupt", strconv.Itoa(corrupt) + "%"})
-			l.applyHandleToEachPort()
-			l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "corrupt", strconv.Itoa(corrupt) + "%"})
-			l.under_attack = true
-			l.current_attack = torture.NewOperationTypes().CorruptPackets
-			return err
-		}
-	}
+func (l *LocalNetEmAttacker) DuplicatePackets(dup int) error {
+	l.ExecuteLastCommands()
+	l.duplicatePackets = dup
+	return l.SetNewHandler()
+}
 
-	return nil
+func (l *LocalNetEmAttacker) ReorderPackets(re int) error {
+	l.ExecuteLastCommands()
+	l.reorderPackets = re
+	return l.SetNewHandler()
+}
 
+func (l *LocalNetEmAttacker) CorruptPackets(corrupt int) error {
+	l.ExecuteLastCommands()
+	l.corruptPackets = corrupt
+	return l.SetNewHandler()
 }
 
 func (l *LocalNetEmAttacker) Pause(on bool) error {
 
-	if !on {
-		if !l.under_attack || l.current_attack != torture.NewOperationTypes().Pause {
-			l.sendControllerMessage("Failed to stop the pause attack because pause attack is currently not in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			l.under_attack = false
-			l.current_attack = -1
-			return nil
-		}
-	} else {
-		if l.under_attack {
-			l.sendControllerMessage("Failed to execute a pause attack because another attack is in progress")
-			return nil
-		} else {
-			l.ExecuteLastCommands()
-			err := util.RunCommand("kill", []string{"-STOP", l.process_id})
-			l.nextCommands = [][]string{{"kill", "-CONT", l.process_id}}
-			l.under_attack = true
-			l.current_attack = torture.NewOperationTypes().Pause
-			return err
-		}
+	if on && !l.stopped {
+		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
+		l.stopped = true
+		l.nextCommands = [][]string{{"kill", "-CONT", l.process_id}}
+		return err
+	} else if !on && l.stopped {
+		l.stopped = false
+		return util.RunCommand("kill", []string{"-CONT", l.process_id})
 	}
+	return nil
 }
 
 func (l *LocalNetEmAttacker) ResetAll() error {
