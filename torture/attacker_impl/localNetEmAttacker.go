@@ -10,8 +10,6 @@ import (
 	"toture-test/torture/util"
 )
 
-// local NetEm attacker allows only one attack at a time
-
 type LocalNetEmAttacker struct {
 	name               int
 	debugOn            bool
