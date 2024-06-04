@@ -29,47 +29,42 @@ func CreateNodes(cfg configuration.InstanceConfig, backend *TortureController) [
 	return nodes
 }
 
-func (n *Node) DelayPackets(delay int, on bool) error {
+func (n *Node) DelayPackets(delay int) error {
 	n.backend.sendMessage(n.name, &proto.Message{
 		Operation: NewOperationTypes().DelayPackets,
 		IntParams: []int32{int32(delay)},
-		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) LossPackets(loss_percentage int, on bool) error {
+func (n *Node) LossPackets(loss_percentage int) error {
 	n.backend.sendMessage(n.name, &proto.Message{
 		Operation: NewOperationTypes().LossPackets,
 		IntParams: []int32{int32(loss_percentage)},
-		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) DuplicatePackets(duplicate_percentage int, on bool) error {
+func (n *Node) DuplicatePackets(duplicate_percentage int) error {
 	n.backend.sendMessage(n.name, &proto.Message{
 		Operation: NewOperationTypes().DuplicatePackets,
 		IntParams: []int32{int32(duplicate_percentage)},
-		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) ReorderPackets(reorder_percentage int, on bool) error {
+func (n *Node) ReorderPackets(reorder_percentage int) error {
 	n.backend.sendMessage(n.name, &proto.Message{
 		Operation: NewOperationTypes().ReorderPackets,
 		IntParams: []int32{int32(reorder_percentage)},
-		On:        on,
 	})
 	return nil
 }
 
-func (n *Node) CorruptPackets(corrupt_percentage int, on bool) error {
+func (n *Node) CorruptPackets(corrupt_percentage int) error {
 	n.backend.sendMessage(n.name, &proto.Message{
 		Operation: NewOperationTypes().CorruptPackets,
 		IntParams: []int32{int32(corrupt_percentage)},
-		On:        on,
 	})
 	return nil
 }
