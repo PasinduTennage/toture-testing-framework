@@ -10,23 +10,23 @@ func (cl *TortureClient) handlerControllerMessage(message *proto.Message) {
 	cl.debug(fmt.Sprintf("Client received message from controller %v\n", message), 0)
 
 	if message.Operation == NewOperationTypes().DelayPackets {
-		cl.attacker.DelayPackets(int(message.IntParams[0]), message.On)
+		cl.attacker.DelayPackets(int(message.IntParams[0]))
 	}
 
 	if message.Operation == NewOperationTypes().LossPackets {
-		cl.attacker.LossPackets(int(message.IntParams[0]), message.On)
+		cl.attacker.LossPackets(int(message.IntParams[0]))
 	}
 
 	if message.Operation == NewOperationTypes().DuplicatePackets {
-		cl.attacker.DuplicatePackets(int(message.IntParams[0]), message.On)
+		cl.attacker.DuplicatePackets(int(message.IntParams[0]))
 	}
 
 	if message.Operation == NewOperationTypes().ReorderPackets {
-		cl.attacker.ReorderPackets(int(message.IntParams[0]), message.On)
+		cl.attacker.ReorderPackets(int(message.IntParams[0]))
 	}
 
 	if message.Operation == NewOperationTypes().CorruptPackets {
-		cl.attacker.CorruptPackets(int(message.IntParams[0]), message.On)
+		cl.attacker.CorruptPackets(int(message.IntParams[0]))
 	}
 
 	if message.Operation == NewOperationTypes().Pause {
