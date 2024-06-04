@@ -14,15 +14,13 @@ type LocalNetEmAttacker struct {
 	name               int
 	debugOn            bool
 	debugLevel         int
-	nextCommands       [][]string
-	ports_under_attack []string // ports under attack
-	process_id         string   // process under attack
+	nextNetEmCommands  [][]string // only for tc commands
+	ports_under_attack []string   // ports under attack
+	process_id         string     // process under attack
 
 	handle      string
 	parent_band string
 	prios       []int
-
-	stopped bool
 
 	c *torture.TortureClient
 
@@ -37,12 +35,11 @@ type LocalNetEmAttacker struct {
 
 func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalNetEmAttacker {
 	l := &LocalNetEmAttacker{
-		name:         name,
-		debugOn:      debugOn,
-		debugLevel:   debugLevel,
-		nextCommands: [][]string{},
-		stopped:      false,
-		c:            c,
+		name:              name,
+		debugOn:           debugOn,
+		debugLevel:        debugLevel,
+		nextNetEmCommands: [][]string{},
+		c:                 c,
 
 		delayPackets:     0,
 		lossPackets:      0,
@@ -104,15 +101,15 @@ func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig)
 	}
 }
 
-func (l *LocalNetEmAttacker) ExecuteLastCommands() error {
+func (l *LocalNetEmAttacker) ExecuteLastNetEmCommands() error {
 	var err error
-	for i := 0; i < len(l.nextCommands); i++ {
-		if len(l.nextCommands[i]) == 0 {
+	for i := 0; i < len(l.nextNetEmCommands); i++ {
+		if len(l.nextNetEmCommands[i]) == 0 {
 			continue
 		}
-		err = util.RunCommand(l.nextCommands[i][0], l.nextCommands[i][1:])
+		err = util.RunCommand(l.nextNetEmCommands[i][0], l.nextNetEmCommands[i][1:])
 	}
-	l.nextCommands = [][]string{}
+	l.nextNetEmCommands = [][]string{}
 	return err
 }
 
@@ -120,7 +117,7 @@ func (l *LocalNetEmAttacker) applyHandleToEachPort() {
 	i := 0
 	for _, port := range l.ports_under_attack {
 		util.RunCommand("tc", []string{"filter", "add", "dev", "lo", "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(l.prios[i]), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
-		l.nextCommands = append(l.nextCommands, []string{"tc", "filter", "del", "dev", "lo", "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(l.prios[i]), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
+		l.nextNetEmCommands = append(l.nextNetEmCommands, []string{"tc", "filter", "del", "dev", "lo", "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(l.prios[i]), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
 		i++
 	}
 }
@@ -142,54 +139,50 @@ func (l *LocalNetEmAttacker) SetNewHandler() error {
 	}
 	err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
 	l.applyHandleToEachPort()
-	l.nextCommands = append(l.nextCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
+	l.nextNetEmCommands = append(l.nextNetEmCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
 	return err
 }
 
 func (l *LocalNetEmAttacker) DelayPackets(delay int) error {
-	l.ExecuteLastCommands()
+	l.ExecuteLastNetEmCommands()
 	l.delayPackets = delay
 	return l.SetNewHandler()
 
 }
 
 func (l *LocalNetEmAttacker) LossPackets(loss int) error {
-	l.ExecuteLastCommands()
+	l.ExecuteLastNetEmCommands()
 	l.lossPackets = loss
 	return l.SetNewHandler()
 
 }
 
 func (l *LocalNetEmAttacker) DuplicatePackets(dup int) error {
-	l.ExecuteLastCommands()
+	l.ExecuteLastNetEmCommands()
 	l.duplicatePackets = dup
 	return l.SetNewHandler()
 }
 
 func (l *LocalNetEmAttacker) ReorderPackets(re int) error {
-	l.ExecuteLastCommands()
+	l.ExecuteLastNetEmCommands()
 	l.reorderPackets = re
 	return l.SetNewHandler()
 }
 
 func (l *LocalNetEmAttacker) CorruptPackets(corrupt int) error {
-	l.ExecuteLastCommands()
+	l.ExecuteLastNetEmCommands()
 	l.corruptPackets = corrupt
 	return l.SetNewHandler()
 }
 
 func (l *LocalNetEmAttacker) Pause(on bool) error {
 
-	if on && !l.stopped {
+	if on {
 		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
-		l.stopped = true
-		l.nextCommands = append(l.nextCommands, []string{"kill", "-CONT", l.process_id})
 		return err
-	} else if !on && l.stopped {
-		l.stopped = false
+	} else {
 		return util.RunCommand("kill", []string{"-CONT", l.process_id})
 	}
-	return nil
 }
 
 func (l *LocalNetEmAttacker) ResetAll() error {
@@ -198,11 +191,12 @@ func (l *LocalNetEmAttacker) ResetAll() error {
 	l.duplicatePackets = 0
 	l.reorderPackets = 0
 	l.corruptPackets = 0
-	return l.ExecuteLastCommands()
+	util.RunCommand("kill", []string{"-CONT", l.process_id})
+	return l.ExecuteLastNetEmCommands()
 }
 
 func (l *LocalNetEmAttacker) Kill() error {
-	l.ExecuteLastCommands()
+	l.ExecuteLastNetEmCommands()
 	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
 	return err
