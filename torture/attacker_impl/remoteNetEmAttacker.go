@@ -182,6 +182,11 @@ func (l *RemoteNetEmAttacker) Pause(on bool) error {
 }
 
 func (l *RemoteNetEmAttacker) ResetAll() error {
+	l.delayPackets = 0
+	l.lossPackets = 0
+	l.duplicatePackets = 0
+	l.reorderPackets = 0
+	l.corruptPackets = 0
 	return l.ExecuteLastCommands()
 }
 
