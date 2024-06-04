@@ -11,17 +11,17 @@ package torture
 
 // Attacker interface defines the methods that an attacker should implement
 type Attacker interface {
-	DelayPackets(int, bool) error     // delay messages by delay milliseconds
-	LossPackets(int, bool) error      // loss percentage of packets
-	DuplicatePackets(int, bool) error // duplicate percentage of packets
-	ReorderPackets(int, bool) error   // reorder percentage of packets
-	CorruptPackets(int, bool) error   // corrupt percentage of packets
-	Pause(bool) error                 // halt the process
-	ResetAll() error                  // reset the process
-	Kill() error                      // kill the process
-	QueueAllMessages(bool) error      // buffer all messages
-	AllowMessages(int) error          // allow num_messages messages
-	CorruptDB() error                 // corrupt the internal database
+	DelayPackets(int) error      // delay messages by delay milliseconds
+	LossPackets(int) error       // loss percentage of packets
+	DuplicatePackets(int) error  // duplicate percentage of packets
+	ReorderPackets(int) error    // reorder percentage of packets
+	CorruptPackets(int) error    // corrupt percentage of packets
+	Pause(bool) error            // halt the process
+	ResetAll() error             // reset the process
+	Kill() error                 // kill the process
+	QueueAllMessages(bool) error // buffer all messages
+	AllowMessages(int) error     // allow num_messages messages
+	CorruptDB() error            // corrupt the internal database
 
 	CleanUp() error // clean up the attacker
 }
