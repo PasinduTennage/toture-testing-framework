@@ -14,6 +14,7 @@ func main() {
 	name := flag.Int64("name", 1, "name of the replica")
 	debugOn := flag.Bool("debugOn", false, "true / false")
 	debugLevel := flag.Int("debugLevel", 1, "debug level")
+	ui := flag.Bool("ui", false, "true / false")
 
 	flag.Parse()
 
@@ -23,7 +24,9 @@ func main() {
 	}
 
 	proxyInstance := dummy.NewProxy(*name, *cfg, *debugOn, *debugLevel)
-	go dummy.DoUi(proxyInstance)
+	if *ui {
+		go dummy.DoUi(proxyInstance)
+	}
 	proxyInstance.NetworkInit()
 	proxyInstance.Run()
 	time.Sleep(10 * time.Second)
