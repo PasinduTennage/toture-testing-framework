@@ -114,7 +114,7 @@ func (pr *Proxy) sendMessage(peer int64, msg *Message) {
 
 	pr.debug("sending message to  "+strconv.Itoa(int(peer)), 0)
 
-	randomWriter := rand.Intn(len(pr.outgoingWriters[peer]))
+	randomWriter := rand.Intn(len(pr.outgoingWriters[peer]) + 1)
 
 	w := pr.outgoingWriters[peer][randomWriter]
 	m := pr.mutexes[peer][randomWriter]
