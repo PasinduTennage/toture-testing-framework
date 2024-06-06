@@ -18,7 +18,7 @@ var portsToCapture = map[uint16]bool{
 }
 
 func main() {
-	nfq, err := netfilter.NewNFQueue(1, 1000000000, netfilter.NF_DEFAULT_PACKET_SIZE)
+	nfq, err := netfilter.NewNFQueue(1, 1000000, netfilter.NF_DEFAULT_PACKET_SIZE)
 	if err != nil {
 		log.Fatalf("could not open NFQUEUE: %v", err)
 	}
