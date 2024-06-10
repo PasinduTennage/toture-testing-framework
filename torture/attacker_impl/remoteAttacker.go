@@ -32,7 +32,7 @@ type RemoteAttacker struct {
 	reorderPackets   int
 	corruptPackets   int
 
-	packets <-chan netfilter.NFPacket
+	packets chan netfilter.NFPacket
 }
 
 // NewRemoteAttacker creates a new RemoteAttacker
@@ -52,6 +52,7 @@ func NewRemoteAttacker(name int, debugOn bool, debugLevel int, cgf configuration
 		duplicatePackets: 0,
 		reorderPackets:   0,
 		corruptPackets:   0,
+		packets:          make(chan netfilter.NFPacket, 1000000),
 	}
 
 	v, ok := config.Options["ports"]
@@ -88,16 +89,21 @@ func NewRemoteAttacker(name int, debugOn bool, debugLevel int, cgf configuration
 func (l *RemoteAttacker) Init(cgf configuration.InstanceConfig) {
 	util.RunCommand("tc", []string{"filter", "del", "dev", l.device})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", l.device, "root"})
+	util.RunCommand("iptables", []string{"-F"})
 	util.RunCommand("tc", []string{"qdisc", "add", "dev", l.device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
 
-	nfq, err := netfilter.NewNFQueue(uint16(l.name), 1000000, netfilter.NF_DEFAULT_PACKET_SIZE)
-	if err != nil {
-		panic("could not open NFQUEUE: %v " + err.Error())
-	}
-	defer nfq.Close()
+	go func() {
+		nfq, err := netfilter.NewNFQueue(uint16(l.name), 1000000, netfilter.NF_DEFAULT_PACKET_SIZE)
+		if err != nil {
+			panic("could not open NFQUEUE: %v " + err.Error())
+		}
+		defer nfq.Close()
 
-	packets := nfq.GetPackets()
-	l.packets = packets
+		packets := nfq.GetPackets()
+		for packet := range packets {
+			l.packets <- packet
+		}
+	}()
 	l.debug("started the NF queue", 2)
 }
 
@@ -252,6 +258,7 @@ func (l *RemoteAttacker) CorruptDB() error {
 func (l *RemoteAttacker) CleanUp() error {
 	util.RunCommand("tc", []string{"filter", "del", "dev", l.device})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", l.device, "root"})
+	util.RunCommand("iptables", []string{"-F"})
 	return l.QueueAllMessages(false)
 }
 
