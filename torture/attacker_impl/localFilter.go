@@ -10,7 +10,7 @@ import (
 	"toture-test/torture/util"
 )
 
-type LocalNetFilterAttacker struct {
+type LocalFilterAttacker struct {
 	name       int
 	debugOn    bool
 	debugLevel int
@@ -21,10 +21,10 @@ type LocalNetFilterAttacker struct {
 	c *torture.TortureClient
 }
 
-// NewLocalNetFilterAttacker creates a new LocalNetEmAttacker
+// NewLocalFilterAttacker creates a new LocalFilterAttacker
 
-func NewLocalNetFilterAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalNetFilterAttacker {
-	l := &LocalNetFilterAttacker{
+func NewLocalFilterAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalFilterAttacker {
+	l := &LocalFilterAttacker{
 		name:       name,
 		debugOn:    debugOn,
 		debugLevel: debugLevel,
@@ -33,7 +33,7 @@ func NewLocalNetFilterAttacker(name int, debugOn bool, debugLevel int, cgf confi
 
 	v, ok := config.Options["ports"]
 	if !ok || v == "NA" {
-		panic("local netem attacker requires ports to be specified")
+		panic("local netfilter attacker requires ports to be specified")
 	}
 	l.ports_under_attack = strings.Split(v, " ")
 
@@ -53,40 +53,40 @@ func NewLocalNetFilterAttacker(name int, debugOn bool, debugLevel int, cgf confi
 	return l
 }
 
-func (l *LocalNetFilterAttacker) Init(cgf configuration.InstanceConfig) {
+func (l *LocalFilterAttacker) Init(cgf configuration.InstanceConfig) {
 
 }
 
-func (l *LocalNetFilterAttacker) sendControllerMessage(m string) {
+func (l *LocalFilterAttacker) sendControllerMessage(m string) {
 	l.c.SendControllerMessage(&proto.Message{
 		StrParams: []string{m},
 	})
 }
 
-func (l *LocalNetFilterAttacker) DelayPackets(delay int) error {
+func (l *LocalFilterAttacker) DelayPackets(delay int) error {
 
 	return nil
 
 }
 
-func (l *LocalNetFilterAttacker) LossPackets(loss int) error {
+func (l *LocalFilterAttacker) LossPackets(loss int) error {
 	return nil
 
 }
 
-func (l *LocalNetFilterAttacker) DuplicatePackets(dup int) error {
+func (l *LocalFilterAttacker) DuplicatePackets(dup int) error {
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) ReorderPackets(re int) error {
+func (l *LocalFilterAttacker) ReorderPackets(re int) error {
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) CorruptPackets(corrupt int) error {
+func (l *LocalFilterAttacker) CorruptPackets(corrupt int) error {
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) Pause(on bool) error {
+func (l *LocalFilterAttacker) Pause(on bool) error {
 
 	if on {
 		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
@@ -96,31 +96,31 @@ func (l *LocalNetFilterAttacker) Pause(on bool) error {
 	}
 }
 
-func (l *LocalNetFilterAttacker) ResetAll() error {
+func (l *LocalFilterAttacker) ResetAll() error {
 
 	util.RunCommand("kill", []string{"-CONT", l.process_id})
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) Kill() error {
+func (l *LocalFilterAttacker) Kill() error {
 	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
 	return err
 }
 
-func (l *LocalNetFilterAttacker) QueueAllMessages(on bool) error {
+func (l *LocalFilterAttacker) QueueAllMessages(on bool) error {
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) AllowMessages(int) error {
+func (l *LocalFilterAttacker) AllowMessages(int) error {
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) CorruptDB() error {
-	l.sendControllerMessage("CorruptDB is not supported by LocalNetFilterAttacker")
+func (l *LocalFilterAttacker) CorruptDB() error {
+	l.sendControllerMessage("CorruptDB is not supported by LocalFilterAttacker")
 	return nil
 }
 
-func (l *LocalNetFilterAttacker) CleanUp() error {
+func (l *LocalFilterAttacker) CleanUp() error {
 	return nil
 }
