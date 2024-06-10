@@ -153,12 +153,14 @@ func (l *LocalNetEmAttacker) SetNewHandler() error {
 	err := util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
 	l.applyHandleToEachPort()
 	l.nextNetEmCommands = append(l.nextNetEmCommands, []string{"tc", "qdisc", "del", "dev", "lo", "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
+	l.debug("added new handler and filters", 2)
 	return err
 }
 
 func (l *LocalNetEmAttacker) DelayPackets(delay int) error {
 	l.ExecuteLastNetEmCommands()
 	l.delayPackets = delay
+	l.debug("set new delay", 2)
 	return l.SetNewHandler()
 
 }
@@ -166,6 +168,7 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int) error {
 func (l *LocalNetEmAttacker) LossPackets(loss int) error {
 	l.ExecuteLastNetEmCommands()
 	l.lossPackets = loss
+	l.debug("set new loss", 2)
 	return l.SetNewHandler()
 
 }
@@ -173,18 +176,21 @@ func (l *LocalNetEmAttacker) LossPackets(loss int) error {
 func (l *LocalNetEmAttacker) DuplicatePackets(dup int) error {
 	l.ExecuteLastNetEmCommands()
 	l.duplicatePackets = dup
+	l.debug("set new duplication", 2)
 	return l.SetNewHandler()
 }
 
 func (l *LocalNetEmAttacker) ReorderPackets(re int) error {
 	l.ExecuteLastNetEmCommands()
 	l.reorderPackets = re
+	l.debug("set new reorder", 2)
 	return l.SetNewHandler()
 }
 
 func (l *LocalNetEmAttacker) CorruptPackets(corrupt int) error {
 	l.ExecuteLastNetEmCommands()
 	l.corruptPackets = corrupt
+	l.debug("set new corrupt", 2)
 	return l.SetNewHandler()
 }
 
@@ -192,8 +198,10 @@ func (l *LocalNetEmAttacker) Pause(on bool) error {
 
 	if on {
 		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
+		l.debug("paused", 2)
 		return err
 	} else {
+		l.debug("resumed", 2)
 		return util.RunCommand("kill", []string{"-CONT", l.process_id})
 	}
 }
@@ -205,6 +213,8 @@ func (l *LocalNetEmAttacker) ResetAll() error {
 	l.reorderPackets = 0
 	l.corruptPackets = 0
 	util.RunCommand("kill", []string{"-CONT", l.process_id})
+	l.QueueAllMessages(false)
+	l.debug("reset all", 2)
 	return l.ExecuteLastNetEmCommands()
 }
 
@@ -212,6 +222,7 @@ func (l *LocalNetEmAttacker) Kill() error {
 	l.ExecuteLastNetEmCommands()
 	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
+	l.debug("killed", 2)
 	return err
 }
 
@@ -222,12 +233,14 @@ func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
 			port := l.ports_under_attack[i]
 			util.RunCommand("iptables", []string{"-A", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
 		}
+		l.debug("started queueing", 2)
 	} else {
 		// use iptables to redirect the traffic to ports to the queue with self.name
 		for i := 0; i < len(l.ports_under_attack); i++ {
 			port := l.ports_under_attack[i]
 			util.RunCommand("iptables", []string{"-D", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
 		}
+		l.debug("stopped queueing", 2)
 	}
 	return nil
 }
@@ -238,6 +251,7 @@ func (l *LocalNetEmAttacker) AllowMessages(n int) error {
 			packet := <-l.packets
 			packet.SetVerdict(netfilter.NF_ACCEPT)
 		}
+		l.debug("allowed n messages", 2)
 	}()
 	return nil
 }
@@ -252,4 +266,10 @@ func (l *LocalNetEmAttacker) CleanUp() error {
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 	return l.QueueAllMessages(false)
 
+}
+
+func (l *LocalNetEmAttacker) debug(m string, level int) {
+	if l.debugOn && level >= l.debugLevel {
+		fmt.Println(m + "\n")
+	}
 }
