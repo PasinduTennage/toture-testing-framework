@@ -1,0 +1,1 @@
+```sudo iptables -D INPUT -p tcp --dport 10000 -j NFQUEUE --queue-num 1``` 
