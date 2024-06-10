@@ -235,13 +235,8 @@ func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
 func (l *LocalNetEmAttacker) AllowMessages(n int) error {
 	go func() {
 		for i := 0; i < n; i++ {
-			select {
-			case packet := <-l.packets:
-				packet.SetVerdict(netfilter.NF_ACCEPT)
-				break
-			default:
-				break
-			}
+			packet := <-l.packets
+			packet.SetVerdict(netfilter.NF_ACCEPT)
 		}
 	}()
 	return nil
