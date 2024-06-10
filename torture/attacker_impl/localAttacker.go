@@ -31,7 +31,7 @@ type LocalAttacker struct {
 	reorderPackets   int
 	corruptPackets   int
 
-	packets <-chan netfilter.NFPacket
+	packets chan netfilter.NFPacket
 }
 
 // NewLocalAttacker creates a new LocalAttacker
@@ -49,6 +49,7 @@ func NewLocalAttacker(name int, debugOn bool, debugLevel int, cgf configuration.
 		duplicatePackets: 0,
 		reorderPackets:   0,
 		corruptPackets:   0,
+		packets:          make(chan netfilter.NFPacket, 1000000),
 	}
 
 	v, ok := config.Options["ports"]
@@ -82,17 +83,23 @@ func (l *LocalAttacker) Init(cgf configuration.InstanceConfig) {
 		util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
 		util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 		util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio", "bands", strconv.Itoa(3 + len(cgf.Peers))})
+		util.RunCommand("iptables", []string{"-F"})
 	}
 
-	nfq, err := netfilter.NewNFQueue(uint16(l.name), 1000000, netfilter.NF_DEFAULT_PACKET_SIZE)
-	if err != nil {
-		panic("could not open NFQUEUE: %v " + err.Error())
-	}
-	defer nfq.Close()
+	go func() {
+		nfq, err := netfilter.NewNFQueue(uint16(l.name), 1000000, netfilter.NF_DEFAULT_PACKET_SIZE)
+		if err != nil {
+			panic("could not open NFQUEUE: %v " + err.Error())
+		}
+		defer nfq.Close()
 
-	packets := nfq.GetPackets()
-	l.packets = packets
+		packets := nfq.GetPackets()
+		for packet := range packets {
+			l.packets <- packet
+		}
 
+	}()
+	l.debug("initialized", 2)
 }
 
 func (l *LocalAttacker) setNetEmVariables(cgf configuration.InstanceConfig) {
@@ -251,7 +258,8 @@ func (l *LocalAttacker) AllowMessages(n int) error {
 			packet := <-l.packets
 			packet.SetVerdict(netfilter.NF_ACCEPT)
 		}
-		l.debug("allowed n messages", 2)
+		l.debug("allowed messages", 2)
+
 	}()
 	return nil
 }
@@ -264,7 +272,8 @@ func (l *LocalAttacker) CorruptDB() error {
 func (l *LocalAttacker) CleanUp() error {
 	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
-	return l.QueueAllMessages(false)
+	util.RunCommand("iptables", []string{"-F"})
+	return nil
 
 }
 
