@@ -11,7 +11,7 @@ import (
 	"toture-test/torture/util"
 )
 
-type LocalNetEmAttacker struct {
+type LocalAttacker struct {
 	name               int
 	debugOn            bool
 	debugLevel         int
@@ -34,10 +34,10 @@ type LocalNetEmAttacker struct {
 	packets <-chan netfilter.NFPacket
 }
 
-// NewLocalNetEmAttacker creates a new LocalNetEmAttacker
+// NewLocalAttacker creates a new LocalAttacker
 
-func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalNetEmAttacker {
-	l := &LocalNetEmAttacker{
+func NewLocalAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *LocalAttacker {
+	l := &LocalAttacker{
 		name:              name,
 		debugOn:           debugOn,
 		debugLevel:        debugLevel,
@@ -76,7 +76,7 @@ func NewLocalNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configura
 	return l
 }
 
-func (l *LocalNetEmAttacker) Init(cgf configuration.InstanceConfig) {
+func (l *LocalAttacker) Init(cgf configuration.InstanceConfig) {
 	// if this is the first attacker client, then initiate the root qdisc
 	if strconv.Itoa(l.name) == cgf.Peers[0].Name {
 		util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
@@ -95,7 +95,7 @@ func (l *LocalNetEmAttacker) Init(cgf configuration.InstanceConfig) {
 
 }
 
-func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig) {
+func (l *LocalAttacker) setNetEmVariables(cgf configuration.InstanceConfig) {
 	index := -1
 	for i, peer := range cgf.Peers {
 		if peer.Name == strconv.Itoa(l.name) {
@@ -114,7 +114,7 @@ func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig)
 	}
 }
 
-func (l *LocalNetEmAttacker) ExecuteLastNetEmCommands() error {
+func (l *LocalAttacker) ExecuteLastNetEmCommands() error {
 	var err error
 	for i := 0; i < len(l.nextNetEmCommands); i++ {
 		if len(l.nextNetEmCommands[i]) == 0 {
@@ -126,7 +126,7 @@ func (l *LocalNetEmAttacker) ExecuteLastNetEmCommands() error {
 	return err
 }
 
-func (l *LocalNetEmAttacker) applyHandleToEachPort() {
+func (l *LocalAttacker) applyHandleToEachPort() {
 	i := 0
 	for _, port := range l.ports_under_attack {
 		util.RunCommand("tc", []string{"filter", "add", "dev", "lo", "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(l.prios[i]), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
@@ -135,17 +135,17 @@ func (l *LocalNetEmAttacker) applyHandleToEachPort() {
 	}
 }
 
-func (l *LocalNetEmAttacker) sendControllerMessage(m string) {
+func (l *LocalAttacker) sendControllerMessage(m string) {
 	l.c.SendControllerMessage(&proto.Message{
 		StrParams: []string{m},
 	})
 }
 
-func (l *LocalNetEmAttacker) decrementDelay() {
+func (l *LocalAttacker) decrementDelay() {
 	l.delayPackets--
 }
 
-func (l *LocalNetEmAttacker) SetNewHandler() error {
+func (l *LocalAttacker) SetNewHandler() error {
 	if l.reorderPackets > 0 && l.delayPackets == 0 {
 		l.delayPackets = 1
 		defer l.decrementDelay()
@@ -157,7 +157,7 @@ func (l *LocalNetEmAttacker) SetNewHandler() error {
 	return err
 }
 
-func (l *LocalNetEmAttacker) DelayPackets(delay int) error {
+func (l *LocalAttacker) DelayPackets(delay int) error {
 	l.ExecuteLastNetEmCommands()
 	l.delayPackets = delay
 	l.debug("set new delay", 2)
@@ -165,7 +165,7 @@ func (l *LocalNetEmAttacker) DelayPackets(delay int) error {
 
 }
 
-func (l *LocalNetEmAttacker) LossPackets(loss int) error {
+func (l *LocalAttacker) LossPackets(loss int) error {
 	l.ExecuteLastNetEmCommands()
 	l.lossPackets = loss
 	l.debug("set new loss", 2)
@@ -173,28 +173,28 @@ func (l *LocalNetEmAttacker) LossPackets(loss int) error {
 
 }
 
-func (l *LocalNetEmAttacker) DuplicatePackets(dup int) error {
+func (l *LocalAttacker) DuplicatePackets(dup int) error {
 	l.ExecuteLastNetEmCommands()
 	l.duplicatePackets = dup
 	l.debug("set new duplication", 2)
 	return l.SetNewHandler()
 }
 
-func (l *LocalNetEmAttacker) ReorderPackets(re int) error {
+func (l *LocalAttacker) ReorderPackets(re int) error {
 	l.ExecuteLastNetEmCommands()
 	l.reorderPackets = re
 	l.debug("set new reorder", 2)
 	return l.SetNewHandler()
 }
 
-func (l *LocalNetEmAttacker) CorruptPackets(corrupt int) error {
+func (l *LocalAttacker) CorruptPackets(corrupt int) error {
 	l.ExecuteLastNetEmCommands()
 	l.corruptPackets = corrupt
 	l.debug("set new corrupt", 2)
 	return l.SetNewHandler()
 }
 
-func (l *LocalNetEmAttacker) Pause(on bool) error {
+func (l *LocalAttacker) Pause(on bool) error {
 
 	if on {
 		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
@@ -206,7 +206,7 @@ func (l *LocalNetEmAttacker) Pause(on bool) error {
 	}
 }
 
-func (l *LocalNetEmAttacker) ResetAll() error {
+func (l *LocalAttacker) ResetAll() error {
 	l.delayPackets = 0
 	l.lossPackets = 0
 	l.duplicatePackets = 0
@@ -218,7 +218,7 @@ func (l *LocalNetEmAttacker) ResetAll() error {
 	return l.ExecuteLastNetEmCommands()
 }
 
-func (l *LocalNetEmAttacker) Kill() error {
+func (l *LocalAttacker) Kill() error {
 	l.ExecuteLastNetEmCommands()
 	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
@@ -226,7 +226,7 @@ func (l *LocalNetEmAttacker) Kill() error {
 	return err
 }
 
-func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
+func (l *LocalAttacker) QueueAllMessages(on bool) error {
 	if on {
 		// use iptables to redirect the traffic to ports to the queue with self.name
 		for i := 0; i < len(l.ports_under_attack); i++ {
@@ -245,7 +245,7 @@ func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
 	return nil
 }
 
-func (l *LocalNetEmAttacker) AllowMessages(n int) error {
+func (l *LocalAttacker) AllowMessages(n int) error {
 	go func() {
 		for i := 0; i < n; i++ {
 			packet := <-l.packets
@@ -256,19 +256,19 @@ func (l *LocalNetEmAttacker) AllowMessages(n int) error {
 	return nil
 }
 
-func (l *LocalNetEmAttacker) CorruptDB() error {
-	l.sendControllerMessage("CorruptDB is not supported by LocalNetEmAttacker")
+func (l *LocalAttacker) CorruptDB() error {
+	l.sendControllerMessage("CorruptDB is not supported by LocalAttacker")
 	return nil
 }
 
-func (l *LocalNetEmAttacker) CleanUp() error {
+func (l *LocalAttacker) CleanUp() error {
 	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 	return l.QueueAllMessages(false)
 
 }
 
-func (l *LocalNetEmAttacker) debug(m string, level int) {
+func (l *LocalAttacker) debug(m string, level int) {
 	if l.debugOn && level >= l.debugLevel {
 		fmt.Println(m + "\n")
 	}

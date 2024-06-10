@@ -11,7 +11,7 @@ import (
 	"toture-test/torture/util"
 )
 
-type RemoteNetEmAttacker struct {
+type RemoteAttacker struct {
 	name               int
 	debugOn            bool
 	debugLevel         int
@@ -35,10 +35,10 @@ type RemoteNetEmAttacker struct {
 	packets <-chan netfilter.NFPacket
 }
 
-// NewRemoteNetEmAttacker creates a new RemoteNetEmAttacker
+// NewRemoteAttacker creates a new RemoteAttacker
 
-func NewRemoteNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *RemoteNetEmAttacker {
-	l := &RemoteNetEmAttacker{
+func NewRemoteAttacker(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *RemoteAttacker {
+	l := &RemoteAttacker{
 		name:              name,
 		debugOn:           debugOn,
 		debugLevel:        debugLevel,
@@ -85,7 +85,7 @@ func NewRemoteNetEmAttacker(name int, debugOn bool, debugLevel int, cgf configur
 	return l
 }
 
-func (l *RemoteNetEmAttacker) Init(cgf configuration.InstanceConfig) {
+func (l *RemoteAttacker) Init(cgf configuration.InstanceConfig) {
 	util.RunCommand("tc", []string{"filter", "del", "dev", l.device})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", l.device, "root"})
 	util.RunCommand("tc", []string{"qdisc", "add", "dev", l.device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
@@ -98,10 +98,10 @@ func (l *RemoteNetEmAttacker) Init(cgf configuration.InstanceConfig) {
 
 	packets := nfq.GetPackets()
 	l.packets = packets
-
+	l.debug("started the NF queue", 2)
 }
 
-func (l *RemoteNetEmAttacker) ExecuteLastNetEmCommands() error {
+func (l *RemoteAttacker) ExecuteLastNetEmCommands() error {
 	var err error
 	for i := 0; i < len(l.nextNetEmCommands); i++ {
 		if len(l.nextNetEmCommands[i]) == 0 {
@@ -113,7 +113,7 @@ func (l *RemoteNetEmAttacker) ExecuteLastNetEmCommands() error {
 	return err
 }
 
-func (l *RemoteNetEmAttacker) applyHandleToEachPort() {
+func (l *RemoteAttacker) applyHandleToEachPort() {
 	i := 1
 	for _, port := range l.ports_under_attack {
 		util.RunCommand("tc", []string{"filter", "add", "dev", l.device, "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(i), "u32", "match", "ip", "dport", port, "0xffff", "flowid", l.parent_band})
@@ -122,17 +122,17 @@ func (l *RemoteNetEmAttacker) applyHandleToEachPort() {
 	}
 }
 
-func (l *RemoteNetEmAttacker) sendControllerMessage(m string) {
+func (l *RemoteAttacker) sendControllerMessage(m string) {
 	l.c.SendControllerMessage(&proto.Message{
 		StrParams: []string{m},
 	})
 }
 
-func (l *RemoteNetEmAttacker) decrementDelay() {
+func (l *RemoteAttacker) decrementDelay() {
 	l.delayPackets--
 }
 
-func (l *RemoteNetEmAttacker) SetNewHandler() error {
+func (l *RemoteAttacker) SetNewHandler() error {
 	if l.reorderPackets > 0 && l.delayPackets == 0 {
 		l.delayPackets = 1
 		defer l.decrementDelay()
@@ -141,101 +141,122 @@ func (l *RemoteNetEmAttacker) SetNewHandler() error {
 	err := util.RunCommand("tc", []string{"qdisc", "add", "dev", l.device, "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
 	l.applyHandleToEachPort()
 	l.nextNetEmCommands = append(l.nextNetEmCommands, []string{"tc", "qdisc", "del", "dev", l.device, "parent", l.parent_band, "handle", l.handle + ":", "netem", "delay", strconv.Itoa(l.delayPackets) + "ms", "loss", strconv.Itoa(l.lossPackets) + "%", "duplicate", strconv.Itoa(l.duplicatePackets) + "%", "reorder", strconv.Itoa(l.reorderPackets) + "%", "50%", "corrupt", strconv.Itoa(l.corruptPackets) + "%"})
+	l.debug("set new net em handler", 2)
 	return err
 }
 
-func (l *RemoteNetEmAttacker) DelayPackets(delay int) error {
+func (l *RemoteAttacker) DelayPackets(delay int) error {
 	l.ExecuteLastNetEmCommands()
 	l.delayPackets = delay
+	l.debug("set delay", 2)
 	return l.SetNewHandler()
 
 }
 
-func (l *RemoteNetEmAttacker) LossPackets(loss int) error {
+func (l *RemoteAttacker) LossPackets(loss int) error {
 	l.ExecuteLastNetEmCommands()
 	l.lossPackets = loss
+	l.debug("set loss", 2)
 	return l.SetNewHandler()
 
 }
 
-func (l *RemoteNetEmAttacker) DuplicatePackets(dup int) error {
+func (l *RemoteAttacker) DuplicatePackets(dup int) error {
 	l.ExecuteLastNetEmCommands()
 	l.duplicatePackets = dup
+	l.debug("set duplicate", 2)
 	return l.SetNewHandler()
 }
 
-func (l *RemoteNetEmAttacker) ReorderPackets(re int) error {
+func (l *RemoteAttacker) ReorderPackets(re int) error {
 	l.ExecuteLastNetEmCommands()
 	l.reorderPackets = re
+	l.debug("set reorder", 2)
 	return l.SetNewHandler()
 }
 
-func (l *RemoteNetEmAttacker) CorruptPackets(corrupt int) error {
+func (l *RemoteAttacker) CorruptPackets(corrupt int) error {
 	l.ExecuteLastNetEmCommands()
 	l.corruptPackets = corrupt
+	l.debug("set corrupt", 2)
 	return l.SetNewHandler()
 }
 
-func (l *RemoteNetEmAttacker) Pause(on bool) error {
+func (l *RemoteAttacker) Pause(on bool) error {
 
 	if on {
-		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
-		return err
+		util.RunCommand("kill", []string{"-STOP", l.process_id})
+		l.debug("paused", 2)
+		return nil
 	} else {
-		return util.RunCommand("kill", []string{"-CONT", l.process_id})
+		util.RunCommand("kill", []string{"-CONT", l.process_id})
+		l.debug("continue", 2)
+		return nil
 	}
 }
 
-func (l *RemoteNetEmAttacker) ResetAll() error {
+func (l *RemoteAttacker) ResetAll() error {
 	l.delayPackets = 0
 	l.lossPackets = 0
 	l.duplicatePackets = 0
 	l.reorderPackets = 0
 	l.corruptPackets = 0
 	util.RunCommand("kill", []string{"-CONT", l.process_id})
+	l.QueueAllMessages(false)
+	l.debug("reset all", 2)
 	return l.ExecuteLastNetEmCommands()
 }
 
-func (l *RemoteNetEmAttacker) Kill() error {
+func (l *RemoteAttacker) Kill() error {
 	l.ExecuteLastNetEmCommands()
 	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
+	l.debug("killed", 2)
 	return err
 }
 
-func (l *RemoteNetEmAttacker) QueueAllMessages(on bool) error {
+func (l *RemoteAttacker) QueueAllMessages(on bool) error {
 	if on {
 		// use iptables to redirect the traffic to ports to the queue with self.name
 		for i := 0; i < len(l.ports_under_attack); i++ {
 			port := l.ports_under_attack[i]
 			util.RunCommand("iptables", []string{"-A", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
 		}
+		l.debug("started queueing", 2)
 	} else {
 		for i := 0; i < len(l.ports_under_attack); i++ {
 			port := l.ports_under_attack[i]
 			util.RunCommand("iptables", []string{"-D", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
 		}
+		l.debug("stopped queueing", 2)
 	}
 	return nil
 }
 
-func (l *RemoteNetEmAttacker) AllowMessages(n int) error {
+func (l *RemoteAttacker) AllowMessages(n int) error {
 	go func() {
 		for i := 0; i < n; i++ {
 			packet := <-l.packets
 			packet.SetVerdict(netfilter.NF_ACCEPT)
 		}
+		l.debug("allowed messages", 2)
 	}()
 	return nil
 }
 
-func (l *RemoteNetEmAttacker) CorruptDB() error {
-	l.sendControllerMessage("CorruptDB is not supported by RemoteNetEmAttacker")
+func (l *RemoteAttacker) CorruptDB() error {
+	l.sendControllerMessage("CorruptDB is not supported by RemoteAttacker")
 	return nil
 }
 
-func (l *RemoteNetEmAttacker) CleanUp() error {
+func (l *RemoteAttacker) CleanUp() error {
 	util.RunCommand("tc", []string{"filter", "del", "dev", l.device})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", l.device, "root"})
 	return l.QueueAllMessages(false)
+}
+
+func (l *RemoteAttacker) debug(m string, level int) {
+	if l.debugOn && level >= l.debugLevel {
+		fmt.Println(m + "\n")
+	}
 }
