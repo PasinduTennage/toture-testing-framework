@@ -6,6 +6,8 @@ This tool uses Linux traffic control (```tc```), and assumes that a non-root use
 
 To enable that, run ```sudo setcap cap_net_admin,cap_net_raw+ep $(which tc)```
 
+```sudo setcap cap_net_admin=eip  /usr/sbin/xtables-nft-multi```
+
 ## Precautions
 
 Run this program in a VM, to avoid any problem in your host machine

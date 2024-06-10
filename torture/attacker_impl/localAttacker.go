@@ -2,6 +2,7 @@ package attacker_impl
 
 import (
 	"fmt"
+	"github.com/AkihiroSuda/go-netfilter-queue"
 	"strconv"
 	"strings"
 	"toture-test/torture/configuration"
@@ -29,6 +30,8 @@ type LocalNetEmAttacker struct {
 	duplicatePackets int
 	reorderPackets   int
 	corruptPackets   int
+
+	packets <-chan netfilter.NFPacket
 }
 
 // NewLocalNetEmAttacker creates a new LocalNetEmAttacker
@@ -80,6 +83,16 @@ func (l *LocalNetEmAttacker) Init(cgf configuration.InstanceConfig) {
 		util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
 		util.RunCommand("tc", []string{"qdisc", "add", "dev", "lo", "root", "handle", "1:", "prio", "bands", strconv.Itoa(3 + len(cgf.Peers))})
 	}
+
+	nfq, err := netfilter.NewNFQueue(uint16(l.name), 1000000, netfilter.NF_DEFAULT_PACKET_SIZE)
+	if err != nil {
+		panic("could not open NFQUEUE: %v " + err.Error())
+	}
+	defer nfq.Close()
+
+	packets := nfq.GetPackets()
+	l.packets = packets
+
 }
 
 func (l *LocalNetEmAttacker) setNetEmVariables(cgf configuration.InstanceConfig) {
@@ -203,12 +216,34 @@ func (l *LocalNetEmAttacker) Kill() error {
 }
 
 func (l *LocalNetEmAttacker) QueueAllMessages(on bool) error {
-	l.sendControllerMessage("QueueAllMessages is not supported by LocalNetEmAttacker")
+	if on {
+		// use iptables to redirect the traffic to ports to the queue with self.name
+		for i := 0; i < len(l.ports_under_attack); i++ {
+			port := l.ports_under_attack[i]
+			util.RunCommand("iptables", []string{"-A", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
+		}
+	} else {
+		// use iptables to redirect the traffic to ports to the queue with self.name
+		for i := 0; i < len(l.ports_under_attack); i++ {
+			port := l.ports_under_attack[i]
+			util.RunCommand("iptables", []string{"-D", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
+		}
+	}
 	return nil
 }
 
-func (l *LocalNetEmAttacker) AllowMessages(int) error {
-	l.sendControllerMessage("AllowMessages is not supported by LocalNetEmAttacker")
+func (l *LocalNetEmAttacker) AllowMessages(n int) error {
+	go func() {
+		for i := 0; i < n; i++ {
+			select {
+			case packet := <-l.packets:
+				packet.SetVerdict(netfilter.NF_ACCEPT)
+				break
+			default:
+				break
+			}
+		}
+	}()
 	return nil
 }
 
@@ -220,5 +255,6 @@ func (l *LocalNetEmAttacker) CorruptDB() error {
 func (l *LocalNetEmAttacker) CleanUp() error {
 	util.RunCommand("tc", []string{"filter", "del", "dev", "lo"})
 	util.RunCommand("tc", []string{"qdisc", "del", "dev", "lo", "root"})
-	return nil
+	return l.QueueAllMessages(false)
+
 }
