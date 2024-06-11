@@ -19,6 +19,7 @@ type Local_Proxy struct {
 
 	ports_under_attack []string // ports under attack that the executor will be listening to
 	dest_ports         []string
+	dest_ip            string
 	process_id         string // process under attack
 
 	c *torture.TortureClient
@@ -87,6 +88,14 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 	} else {
 		l.process_id = v
 	}
+
+	v, ok = config.Options["ip"]
+	if !ok || v == "NA" {
+		panic("could not find server ip")
+	} else {
+		l.dest_ip = v
+	}
+
 	fmt.Printf("Process ID: %v, ports under attack %v, destination ports: %v \n", l.process_id, l.ports_under_attack, l.dest_ports)
 
 	l.Init(cgf)
@@ -112,18 +121,24 @@ func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 		}
 		l.debug("proxy listening to messages on "+"0.0.0.0:"+sPort, 0)
 		for true {
-			conn, err := listener.Accept()
+			sConn, err := listener.Accept()
 			if err != nil {
 				panic(err.Error())
 			}
-
+			rConn, err := net.Dial("tcp", l.dest_ip+":"+dPort)
+			if err != nil {
+				panic(err.Error())
+			}
+			go l.runPipe(sConn, rConn)
 		}
 		// for each incoming new connection, open another thread that would process packets
 	}(sPort, dPort)
 }
 
 func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
+	for true {
 
+	}
 }
 
 func (l *Local_Proxy) sendControllerMessage(m string) {
