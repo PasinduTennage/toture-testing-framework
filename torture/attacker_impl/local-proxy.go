@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"toture-test/torture/configuration"
 	"toture-test/torture/proto"
 	torture "toture-test/torture/torture/src"
@@ -149,14 +150,24 @@ func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
 		l.mu.RUnlock()
 
 		for {
-			// Read from source connection
+			if paused {
+				continue
+			}
+			if queued {
+				_ = <-l.allowMessageIfQueues
+			}
+
 			n, err := sCon.Read(buffer)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
 			}
+			// handle delay
+			time.Sleep(time.Duration(delayPackets) * time.Millisecond)
+			// handle loss
+			// TODO
+			// handle d
 
-			// Write to destination connection
 			_, err = dCon.Write(buffer[:n])
 			if err != nil {
 				fmt.Println("Error writing to destination connection:", err)
