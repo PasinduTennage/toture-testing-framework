@@ -136,8 +136,33 @@ func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 }
 
 func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
+	buffer := make([]byte, 512)
 	for true {
+		l.mu.RLock()
+		delayPackets := l.delayPackets
+		lossPackets := l.lossPackets
+		duplicatePackets := l.duplicatePackets
+		reorderPackets := l.reorderPackets
+		corruptPackets := l.corruptPackets
+		paused := l.paused
+		queued := l.queued
+		l.mu.RUnlock()
 
+		for {
+			// Read from source connection
+			n, err := sCon.Read(buffer)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			// Write to destination connection
+			_, err = dCon.Write(buffer[:n])
+			if err != nil {
+				fmt.Println("Error writing to destination connection:", err)
+				return
+			}
+		}
 	}
 }
 
