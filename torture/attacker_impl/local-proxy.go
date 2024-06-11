@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"toture-test/torture/configuration"
 	"toture-test/torture/proto"
 	torture "toture-test/torture/torture/src"
@@ -11,42 +12,51 @@ import (
 )
 
 type Local_Proxy struct {
-	name               int
-	debugOn            bool
-	debugLevel         int
-	nextNetEmCommands  [][]string // only for tc commands
-	ports_under_attack []string   // ports under attack
-	process_id         string     // process under attack
+	name       int
+	debugOn    bool
+	debugLevel int
+
+	ports_under_attack []string // ports under attack that the executor will be listening to
+	dest_ports         []string
+	process_id         string // process under attack
 
 	c *torture.TortureClient
 
-	delayPackets     int
-	lossPackets      int
-	duplicatePackets int
-	reorderPackets   int
-	corruptPackets   int
+	delayPackets         int
+	lossPackets          int
+	duplicatePackets     int
+	reorderPackets       int
+	corruptPackets       int
+	paused               bool
+	queued               bool
+	allowMessageIfQueues chan bool
+
+	mu *sync.RWMutex
 }
 
 // NewLocal_Proxy creates a new Local_Proxy
 
 func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.InstanceConfig, config configuration.ConsensusConfig, c *torture.TortureClient) *Local_Proxy {
 	l := &Local_Proxy{
-		name:              name,
-		debugOn:           debugOn,
-		debugLevel:        debugLevel,
-		nextNetEmCommands: [][]string{},
-		c:                 c,
+		name:       name,
+		debugOn:    debugOn,
+		debugLevel: debugLevel,
+		c:          c,
 
-		delayPackets:     0,
-		lossPackets:      0,
-		duplicatePackets: 0,
-		reorderPackets:   0,
-		corruptPackets:   0,
+		delayPackets:         0,
+		lossPackets:          0,
+		duplicatePackets:     0,
+		reorderPackets:       0,
+		corruptPackets:       0,
+		paused:               false,
+		queued:               false,
+		allowMessageIfQueues: make(chan bool, 10000000),
+		mu:                   &sync.RWMutex{},
 	}
 
 	v, ok := config.Options["ports"]
 	if !ok || v == "NA" {
-		panic("local netem attacker requires ports to be specified")
+		panic("local proxy attacker requires ports to be specified")
 	}
 	l.ports_under_attack = strings.Split(v, " ")
 
@@ -54,13 +64,29 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 		panic("no ports to attack")
 	}
 
+	v, ok = config.Options["dest_ports"]
+	if !ok || v == "NA" {
+		panic("local proxy attacker requires dest ports to be specified")
+	}
+	l.dest_ports = strings.Split(v, " ")
+
+	if len(l.dest_ports) == 0 {
+		panic("no dest ports to attack")
+	}
+	if len(l.dest_ports) != len(l.ports_under_attack) {
+		panic("dest ports do not map the listening ports")
+	}
+
 	v, ok = config.Options["process_id"]
 	if !ok || v == "NA" {
-		l.process_id = strconv.Itoa(util.GetProcessID(l.ports_under_attack[0]))
+		l.process_id = strconv.Itoa(util.GetProcessID(l.dest_ports[0]))
+		if l.process_id == "-1" {
+			panic("could not find the process id")
+		}
 	} else {
 		l.process_id = v
 	}
-	fmt.Printf("Process ID: %v, ports under attack %v\n", l.process_id, l.ports_under_attack)
+	fmt.Printf("Process ID: %v, ports under attack %v, destination ports: %v \n", l.process_id, l.ports_under_attack, l.dest_ports)
 
 	l.Init(cgf)
 
@@ -68,8 +94,20 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 }
 
 func (l *Local_Proxy) Init(cgf configuration.InstanceConfig) {
-
+	for i := 0; i < len(l.ports_under_attack); i++ {
+		source_port := l.ports_under_attack[i]
+		dest_port := l.dest_ports[i]
+		l.runProxy(source_port, dest_port)
+	}
 	l.debug("initialized", 2)
+}
+
+func (l *Local_Proxy) runProxy(sPort string, dPort string) {
+	go func(sPort string, dPort string) {
+		// listen to the sPort in a new thread
+
+		// for each incoming new connection, open another thread that would process packets
+	}(sPort, dPort)
 }
 
 func (l *Local_Proxy) sendControllerMessage(m string) {
