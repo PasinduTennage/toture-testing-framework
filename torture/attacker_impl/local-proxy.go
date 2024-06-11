@@ -2,6 +2,7 @@ package attacker_impl
 
 import (
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"sync"
@@ -105,9 +106,24 @@ func (l *Local_Proxy) Init(cgf configuration.InstanceConfig) {
 func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 	go func(sPort string, dPort string) {
 		// listen to the sPort in a new thread
+		listener, err := net.Listen("tcp", "0.0.0.0:"+sPort)
+		if err != nil {
+			panic(err.Error())
+		}
+		l.debug("proxy listening to messages on "+"0.0.0.0:"+sPort, 0)
+		for true {
+			conn, err := listener.Accept()
+			if err != nil {
+				panic(err.Error())
+			}
 
+		}
 		// for each incoming new connection, open another thread that would process packets
 	}(sPort, dPort)
+}
+
+func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
+
 }
 
 func (l *Local_Proxy) sendControllerMessage(m string) {
