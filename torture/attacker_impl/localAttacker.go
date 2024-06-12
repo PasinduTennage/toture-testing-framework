@@ -5,6 +5,7 @@ import (
 	"github.com/AkihiroSuda/go-netfilter-queue"
 	"strconv"
 	"strings"
+	"sync"
 	"toture-test/torture/configuration"
 	"toture-test/torture/proto"
 	torture "toture-test/torture/torture/src"
@@ -32,6 +33,9 @@ type LocalAttacker struct {
 	corruptPackets   int
 
 	packets chan netfilter.NFPacket
+
+	numQueued int
+	mu        *sync.RWMutex
 }
 
 // NewLocalAttacker creates a new LocalAttacker
@@ -50,6 +54,8 @@ func NewLocalAttacker(name int, debugOn bool, debugLevel int, cgf configuration.
 		reorderPackets:   0,
 		corruptPackets:   0,
 		packets:          make(chan netfilter.NFPacket, 1000000),
+		numQueued:        0,
+		mu:               &sync.RWMutex{},
 	}
 
 	v, ok := config.Options["ports"]
@@ -96,6 +102,9 @@ func (l *LocalAttacker) Init(cgf configuration.InstanceConfig) {
 		packets := nfq.GetPackets()
 		for packet := range packets {
 			l.packets <- packet
+			l.mu.Lock()
+			l.numQueued++
+			l.mu.Unlock()
 		}
 
 	}()
@@ -248,6 +257,11 @@ func (l *LocalAttacker) QueueAllMessages(on bool) error {
 			util.RunCommand("iptables", []string{"-D", "INPUT", "-p", "tcp", "--dport", port, "-j", "NFQUEUE", "--queue-num", strconv.Itoa(l.name)})
 		}
 		l.debug("stopped queueing", 2)
+		l.mu.RLock()
+		numQueued := l.numQueued
+		l.mu.RUnlock()
+
+		l.AllowMessages(numQueued + 10)
 	}
 	return nil
 }
@@ -259,7 +273,9 @@ func (l *LocalAttacker) AllowMessages(n int) error {
 			packet.SetVerdict(netfilter.NF_ACCEPT)
 		}
 		l.debug("allowed messages", 2)
-
+		l.mu.Lock()
+		l.numQueued -= n
+		l.mu.Unlock()
 	}()
 	return nil
 }
