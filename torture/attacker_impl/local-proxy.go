@@ -38,6 +38,8 @@ type Local_Proxy struct {
 	dest_ports      []string // ports to which the consensus protocol is listening to
 	dest_ip         string   // ip of the consensus replica
 	process_id      string   // process id of the consensus replica
+
+	numConnections int
 }
 
 // NewLocal_Proxy creates a new Local_Proxy
@@ -58,6 +60,7 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 		queued:               false,
 		mu:                   &sync.RWMutex{},
 		allowMessageIfQueued: make(chan bool, 1000000),
+		numConnections:       0,
 	}
 
 	v, ok := config.Options["ports"]
@@ -141,10 +144,13 @@ func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 }
 
 func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
+	l.mu.Lock()
+	l.numConnections++
+	l.mu.Unlock()
 	incoming := make(chan []byte, 1000)
 	go func() {
 		for true {
-			buffer := make([]byte, 1000)
+			buffer := make([]byte, 100)
 			n, err := sCon.Read(buffer)
 			if err == nil && n > 0 {
 				incoming <- buffer[:n]
@@ -282,9 +288,8 @@ func (l *Local_Proxy) ResetAll() error {
 	l.duplicatePackets = 0
 	l.reorderPackets = 0
 	l.corruptPackets = 0
-	l.paused = false
-	l.queued = false
 	l.mu.Unlock()
+	l.QueueAllMessages(false)
 	l.Pause(false)
 	l.debug("reset all", 2)
 	return nil
@@ -301,7 +306,13 @@ func (l *Local_Proxy) Kill() error {
 func (l *Local_Proxy) QueueAllMessages(on bool) error {
 	l.mu.Lock()
 	l.queued = on
+	numThreads := l.numConnections
 	l.mu.Unlock()
+	for i := 0; i < numThreads+100; i++ {
+		if !on {
+			l.allowMessageIfQueued <- true
+		}
+	}
 	return nil
 }
 
