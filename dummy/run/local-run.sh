@@ -1,17 +1,24 @@
-timeout=$1
-interArrivalTime=$2
+interArrivalTime=$1
 
 dummy_path="dummy/bin/dummy"
+torture_path="torture/bin/torture"
+
+/bin/bash build.sh
 
 pkill dummy; pkill dummy; pkill dummy; pkill dummy; pkill dummy
+pkill torture; pkill torture; pkill torture; pkill torture; pkill torture
+rm nohup.out
 
 echo "Killed previously running instances"
 
-nohup ./${dummy_path} --name 1 --ui --interArrivalTime 100 &
-nohup ./${dummy_path} --name 2 --ui --interArrivalTime 100 &
-nohup ./${dummy_path} --name 3 --ui --interArrivalTime 100 &
-nohup ./${dummy_path} --name 4 --ui --interArrivalTime 100 &
-nohup ./${dummy_path} --name 5 --ui --interArrivalTime 100 &
+mkdir -p logs/dummy
+mkdir -p logs/torture
+
+nohup ./${dummy_path} --name 1 --ui --interArrivalTime ${interArrivalTime} > logs/dummy/1.log &
+nohup ./${dummy_path} --name 2 --ui --interArrivalTime ${interArrivalTime} > logs/dummy/2.log &
+nohup ./${dummy_path} --name 3 --ui --interArrivalTime ${interArrivalTime} > logs/dummy/3.log &
+nohup ./${dummy_path} --name 4 --ui --interArrivalTime ${interArrivalTime} > logs/dummy/4.log &
+nohup ./${dummy_path} --name 5 --ui --interArrivalTime ${interArrivalTime} > logs/dummy/5.log &
 
 sleep 10
 
@@ -23,8 +30,18 @@ xdg-open "http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?
 
 echo "Started 5 dummy replicas"
 
-sleep ${timeout}
+nohup ./${torture_path} --name 11 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/11.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/11.log &
+nohup ./${torture_path} --name 12 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/12.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/12.log &
+nohup ./${torture_path} --name 13 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/13.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/13.log &
+nohup ./${torture_path} --name 14 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/14.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/14.log &
+nohup ./${torture_path} --name 15 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/15.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/15.log &
+
+./${torture_path} --name 16 --config torture/configuration/local-config.cfg  --debugOn --debugLevel 2 --attacker localNetEm --isController > logs/torture/16.log
+
+sleep 10
 
 pkill dummy; pkill dummy; pkill dummy; pkill dummy; pkill dummy
+pkill torture; pkill torture; pkill torture; pkill torture; pkill torture
+
 rm nohup.out
-echo "Killed all dummy servers"
+echo "Finished tests"
