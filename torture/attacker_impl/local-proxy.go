@@ -2,6 +2,7 @@ package attacker_impl
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"strconv"
 	"strings"
@@ -140,40 +141,76 @@ func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 }
 
 func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
-	// read one packet at a time, put all the filters and then write to the destination connection
 	buffer := make([]byte, 512)
-	for true {
-		l.mu.RLock()
-		delayPackets := l.delayPackets
-		lossPackets := l.lossPackets
-		duplicatePackets := l.duplicatePackets
-		reorderPackets := l.reorderPackets
-		corruptPackets := l.corruptPackets
-		paused := l.paused
-		queued := l.queued
-		l.mu.RUnlock()
 
-		if paused {
-			continue
+	incoming := make(chan []byte, 1000)
+	go func() {
+		for {
+			n, err := sCon.Read(buffer)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			incoming <- buffer[:n]
 		}
-		if queued {
-			_ = <-l.allowMessageIfQueued
-		}
+	}()
+	go func() {
+		for {
+			l.mu.RLock()
+			delayPackets := l.delayPackets
+			lossPackets := l.lossPackets
+			duplicatePackets := l.duplicatePackets
+			reorderPackets := l.reorderPackets
+			corruptPackets := l.corruptPackets
+			paused := l.paused
+			queued := l.queued
+			l.mu.RUnlock()
 
-		n, err := sCon.Read(buffer)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		// handle delay
-		time.Sleep(time.Duration(delayPackets) * time.Millisecond)
+			if paused {
+				continue
+			}
+			if queued {
+				_ = <-l.allowMessageIfQueued
+			}
 
-		_, err = dCon.Write(buffer[:n])
-		if err != nil {
-			fmt.Println(err.Error())
-			return
+			newPacket := <-incoming
+			// handle delay
+			time.Sleep(time.Duration(delayPackets) * time.Millisecond)
+
+			// handle loss
+			if rand.Intn(100) < lossPackets {
+				//continue
+				l.sendControllerMessage("loss packet is not enabled on in Local_Proxy")
+			}
+
+			// handle duplication
+			dupC := 1
+			if rand.Intn(100) < duplicatePackets {
+				//dupC++
+				l.sendControllerMessage("Duplicating packet is not enabled in Local_Proxy")
+			}
+
+			// handle reordering
+			if rand.Intn(100) < reorderPackets {
+				//incoming <- newPacket
+				//continue
+				l.sendControllerMessage("Reordering packet is not enabled in Local_Proxy")
+			}
+
+			// handle corruption
+			if rand.Intn(100) < corruptPackets {
+				l.sendControllerMessage("Corrupting packet not supported in Local_Proxy")
+			}
+
+			for i := 0; i < dupC; i++ {
+				_, err := dCon.Write(newPacket)
+				if err != nil {
+					fmt.Println(err.Error())
+					return
+				}
+			}
 		}
-	}
+	}()
 }
 
 func (l *Local_Proxy) sendControllerMessage(m string) {
@@ -268,14 +305,18 @@ func (l *Local_Proxy) QueueAllMessages(on bool) error {
 }
 
 func (l *Local_Proxy) AllowMessages(n int) error {
-	for i := 0; i < n; i++ {
-		select {
-		case l.allowMessageIfQueued <- true:
-			break
-		default:
-			break
+
+	go func() {
+		for i := 0; i < n; i++ {
+			select {
+			case l.allowMessageIfQueued <- true:
+				break
+			default:
+				i--
+				break
+			}
 		}
-	}
+	}()
 	return nil
 }
 
@@ -290,7 +331,7 @@ func (l *Local_Proxy) CleanUp() error {
 		case l.allowMessageIfQueued <- true:
 			break
 		default:
-			return nil
+			break
 		}
 	}
 }
