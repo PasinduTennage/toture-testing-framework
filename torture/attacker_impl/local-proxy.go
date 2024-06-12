@@ -100,7 +100,7 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 		l.process_id = v
 	}
 
-	fmt.Printf("Process ID: %v, listening ports %v, destination ports: %v, ip:%v \n", l.process_id, l.listening_ports, l.dest_ports, l.dest_ip)
+	fmt.Printf("Local proxy attacher: Process ID: %v, listening ports %v, destination ports: %v, ip:%v \n", l.process_id, l.listening_ports, l.dest_ports, l.dest_ip)
 
 	l.Init(cgf)
 

@@ -18,7 +18,7 @@ func main() {
 	debugOn := flag.Bool("debugOn", false, "true / false")
 	debugLevel := flag.Int("debugLevel", 1, "debug level")
 	isController := flag.Bool("isController", false, "true for controller, false for client")
-	attacker := flag.String("attacker", "localNetEm", "localNetEm / remoteNetEm")
+	attacker := flag.String("attacker", "localNetEm", "localNetEm / remoteNetEm / lProxy")
 
 	flag.Parse()
 
@@ -46,6 +46,8 @@ func main() {
 			cl.SetAttacker(attacker_impl.NewLocalAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config, cl))
 		} else if *attacker == "remoteNetEm" {
 			cl.SetAttacker(attacker_impl.NewRemoteAttacker(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config, cl))
+		} else if *attacker == "lProxy" {
+			cl.SetAttacker(attacker_impl.NewLocal_Proxy(int(*name), *debugOn, *debugLevel, *cfg, *consensus_config, cl))
 		} else {
 			panic("invalid")
 		}
