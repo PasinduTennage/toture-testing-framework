@@ -8,6 +8,9 @@ pkill torture; pkill torture; pkill torture; pkill torture; pkill torture
 rm nohup.out
 echo "Killed previously running instances"
 
+mkdir -p logs/dummy
+mkdir -p logs/torture
+
 nohup ./${dummy_path} --name 1 --ui --config dummy/configuration/local-proxy/1.cfg > logs/dummy/1.log &
 nohup ./${dummy_path} --name 2 --ui --config dummy/configuration/local-proxy/2.cfg > logs/dummy/2.log &
 nohup ./${dummy_path} --name 3 --ui --config dummy/configuration/local-proxy/3.cfg > logs/dummy/3.log &
