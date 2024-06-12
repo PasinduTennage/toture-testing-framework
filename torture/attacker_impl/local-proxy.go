@@ -18,23 +18,25 @@ type Local_Proxy struct {
 	debugOn    bool
 	debugLevel int
 
-	ports_under_attack []string // ports under attack that the executor will be listening to
-	dest_ports         []string
-	dest_ip            string
-	process_id         string // process under attack
-
 	c *torture.TortureClient
 
-	delayPackets         int
-	lossPackets          int
-	duplicatePackets     int
-	reorderPackets       int
-	corruptPackets       int
-	paused               bool
-	queued               bool
-	allowMessageIfQueues chan bool
+	delayPackets     int
+	lossPackets      int
+	duplicatePackets int
+	reorderPackets   int
+	corruptPackets   int
 
-	mu *sync.RWMutex
+	paused bool
+	queued bool
+
+	mu *sync.RWMutex // for mutual exclusion of above 7 variables
+
+	allowMessageIfQueued chan bool // used to inform each connection handler whether to release the message or not
+
+	listening_ports []string // ports under attack that the executor will be listening to
+	dest_ports      []string // ports to which the consensus protocol is listening to
+	dest_ip         string   // ip of the consensus replica
+	process_id      string   // process id of the consensus replica
 }
 
 // NewLocal_Proxy creates a new Local_Proxy
@@ -53,18 +55,18 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 		corruptPackets:       0,
 		paused:               false,
 		queued:               false,
-		allowMessageIfQueues: make(chan bool, 10000000),
 		mu:                   &sync.RWMutex{},
+		allowMessageIfQueued: make(chan bool, 1000000),
 	}
 
 	v, ok := config.Options["ports"]
 	if !ok || v == "NA" {
 		panic("local proxy attacker requires ports to be specified")
 	}
-	l.ports_under_attack = strings.Split(v, " ")
+	l.listening_ports = strings.Split(v, " ")
 
-	if len(l.ports_under_attack) == 0 {
-		panic("no ports to attack")
+	if len(l.listening_ports) == 0 {
+		panic("no listening ports specified")
 	}
 
 	v, ok = config.Options["dest_ports"]
@@ -76,8 +78,15 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 	if len(l.dest_ports) == 0 {
 		panic("no dest ports to attack")
 	}
-	if len(l.dest_ports) != len(l.ports_under_attack) {
+	if len(l.dest_ports) != len(l.listening_ports) {
 		panic("dest ports do not map the listening ports")
+	}
+
+	v, ok = config.Options["ip"]
+	if !ok || v == "NA" {
+		panic("could not find server ip")
+	} else {
+		l.dest_ip = v
 	}
 
 	v, ok = config.Options["process_id"]
@@ -90,14 +99,7 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 		l.process_id = v
 	}
 
-	v, ok = config.Options["ip"]
-	if !ok || v == "NA" {
-		panic("could not find server ip")
-	} else {
-		l.dest_ip = v
-	}
-
-	fmt.Printf("Process ID: %v, ports under attack %v, destination ports: %v \n", l.process_id, l.ports_under_attack, l.dest_ports)
+	fmt.Printf("Process ID: %v, listening ports %v, destination ports: %v, ip:%v \n", l.process_id, l.listening_ports, l.dest_ports, l.dest_ip)
 
 	l.Init(cgf)
 
@@ -105,12 +107,12 @@ func NewLocal_Proxy(name int, debugOn bool, debugLevel int, cgf configuration.In
 }
 
 func (l *Local_Proxy) Init(cgf configuration.InstanceConfig) {
-	for i := 0; i < len(l.ports_under_attack); i++ {
-		source_port := l.ports_under_attack[i]
+	for i := 0; i < len(l.listening_ports); i++ {
+		source_port := l.listening_ports[i]
 		dest_port := l.dest_ports[i]
 		l.runProxy(source_port, dest_port)
 	}
-	l.debug("initialized", 2)
+	l.debug("initialized all listening ports", 2)
 }
 
 func (l *Local_Proxy) runProxy(sPort string, dPort string) {
@@ -126,17 +128,19 @@ func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 			if err != nil {
 				panic(err.Error())
 			}
+			l.debug("new connection to "+sPort, 2)
 			rConn, err := net.Dial("tcp", l.dest_ip+":"+dPort)
 			if err != nil {
 				panic(err.Error())
 			}
+			l.debug("new connection to "+dPort, 2)
 			go l.runPipe(sConn, rConn)
 		}
-		// for each incoming new connection, open another thread that would process packets
 	}(sPort, dPort)
 }
 
 func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
+	// read one packet at a time, put all the filters and then write to the destination connection
 	buffer := make([]byte, 512)
 	for true {
 		l.mu.RLock()
@@ -149,30 +153,25 @@ func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
 		queued := l.queued
 		l.mu.RUnlock()
 
-		for {
-			if paused {
-				continue
-			}
-			if queued {
-				_ = <-l.allowMessageIfQueues
-			}
+		if paused {
+			continue
+		}
+		if queued {
+			_ = <-l.allowMessageIfQueued
+		}
 
-			n, err := sCon.Read(buffer)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			// handle delay
-			time.Sleep(time.Duration(delayPackets) * time.Millisecond)
-			// handle loss
-			// TODO
-			// handle d
+		n, err := sCon.Read(buffer)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		// handle delay
+		time.Sleep(time.Duration(delayPackets) * time.Millisecond)
 
-			_, err = dCon.Write(buffer[:n])
-			if err != nil {
-				fmt.Println("Error writing to destination connection:", err)
-				return
-			}
+		_, err = dCon.Write(buffer[:n])
+		if err != nil {
+			fmt.Println(err.Error())
+			return
 		}
 	}
 }
@@ -184,38 +183,50 @@ func (l *Local_Proxy) sendControllerMessage(m string) {
 }
 
 func (l *Local_Proxy) DelayPackets(delay int) error {
+	l.mu.Lock()
 	l.delayPackets = delay
+	l.mu.Unlock()
 	l.debug("set new delay", 2)
 	return nil
 
 }
 
 func (l *Local_Proxy) LossPackets(loss int) error {
+	l.mu.Lock()
 	l.lossPackets = loss
+	l.mu.Unlock()
 	l.debug("set new loss", 2)
 	return nil
 }
 
 func (l *Local_Proxy) DuplicatePackets(dup int) error {
+	l.mu.Lock()
 	l.duplicatePackets = dup
+	l.mu.Unlock()
 	l.debug("set new duplication", 2)
 	return nil
 }
 
 func (l *Local_Proxy) ReorderPackets(re int) error {
+	l.mu.Lock()
 	l.reorderPackets = re
+	l.mu.Unlock()
 	l.debug("set new reorder", 2)
 	return nil
 }
 
 func (l *Local_Proxy) CorruptPackets(corrupt int) error {
+	l.mu.Lock()
 	l.corruptPackets = corrupt
+	l.mu.Unlock()
 	l.debug("set new corrupt", 2)
 	return nil
 }
 
 func (l *Local_Proxy) Pause(on bool) error {
-
+	l.mu.Lock()
+	l.paused = on
+	l.mu.Unlock()
 	if on {
 		err := util.RunCommand("kill", []string{"-STOP", l.process_id})
 		l.debug("paused", 2)
@@ -227,17 +238,22 @@ func (l *Local_Proxy) Pause(on bool) error {
 }
 
 func (l *Local_Proxy) ResetAll() error {
+	l.mu.Lock()
 	l.delayPackets = 0
 	l.lossPackets = 0
 	l.duplicatePackets = 0
 	l.reorderPackets = 0
 	l.corruptPackets = 0
-	util.RunCommand("kill", []string{"-CONT", l.process_id})
+	l.paused = false
+	l.queued = false
+	l.mu.Unlock()
+	l.Pause(false)
 	l.debug("reset all", 2)
 	return nil
 }
 
 func (l *Local_Proxy) Kill() error {
+	l.ResetAll()
 	l.CleanUp()
 	err := util.RunCommand("kill", []string{"-9", l.process_id})
 	l.debug("killed", 2)
@@ -245,10 +261,21 @@ func (l *Local_Proxy) Kill() error {
 }
 
 func (l *Local_Proxy) QueueAllMessages(on bool) error {
+	l.mu.Lock()
+	l.queued = on
+	l.mu.Unlock()
 	return nil
 }
 
 func (l *Local_Proxy) AllowMessages(n int) error {
+	for i := 0; i < n; i++ {
+		select {
+		case l.allowMessageIfQueued <- true:
+			break
+		default:
+			break
+		}
+	}
 	return nil
 }
 
@@ -258,8 +285,14 @@ func (l *Local_Proxy) CorruptDB() error {
 }
 
 func (l *Local_Proxy) CleanUp() error {
-	return nil
-
+	for {
+		select {
+		case l.allowMessageIfQueued <- true:
+			break
+		default:
+			return nil
+		}
+	}
 }
 
 func (l *Local_Proxy) debug(m string, level int) {
