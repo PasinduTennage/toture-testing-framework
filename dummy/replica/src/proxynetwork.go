@@ -42,14 +42,15 @@ func (pr *Proxy) waitForConnections() {
 				if err != nil {
 					panic(err.Error())
 				}
+				pr.debug("Received incoming tcp connection from someone, id yet not read", 12)
 				if _, err := io.ReadFull(conn, bs); err != nil {
 					panic(err.Error())
 				}
 				id := int32(binary.LittleEndian.Uint16(bs))
-				pr.debug("Received incoming tcp connection from "+strconv.Itoa(int(id)), -1)
+				pr.debug("Received incoming tcp connection from "+strconv.Itoa(int(id)), 12)
 
 				go pr.connectionListener(bufio.NewReader(conn), id)
-				pr.debug("Started listening to "+strconv.Itoa(int(id)), 0)
+				pr.debug("Started listening to "+strconv.Itoa(int(id)), 12)
 			}
 		}(pr.serverAddress[i])
 	}
@@ -94,10 +95,10 @@ func (pr *Proxy) ConnectToReplicas() {
 						//pr.debug("Error connecting to client "+strconv.Itoa(int(id)), 0)
 						panic(err)
 					}
-					pr.debug("Started outgoing tcp connection to "+addresses[i], 0)
+					pr.debug("Started outgoing tcp connection to "+addresses[i], 12)
 					break
 				} else {
-					pr.debug("failed to connect to "+addresses[i], 0)
+					pr.debug("failed to connect to "+addresses[i], 12)
 					time.Sleep(time.Duration(10) * time.Millisecond)
 				}
 			}
@@ -134,6 +135,6 @@ func (pr *Proxy) sendMessage(peer int64, msg *Message) {
 		m.Unlock()
 		return
 	}
-	pr.debug("sent message to  "+strconv.Itoa(int(peer)), 1)
+	pr.debug("sent message to  "+strconv.Itoa(int(peer)), 12)
 	m.Unlock()
 }

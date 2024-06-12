@@ -53,7 +53,7 @@ func (pr *Proxy) StartApplication() {
 		rm := pr.getRandomMessage()
 		pr.sendMessage(int64(node), rm)
 		pr.sent.Store(rm.Index, Request{sentTime: time.Now()})
-		time.Sleep(time.Duration(100) * time.Millisecond)
+		time.Sleep(time.Duration(pr.interArrivalTime) * time.Millisecond)
 	}
 
 }

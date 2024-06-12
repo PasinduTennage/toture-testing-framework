@@ -43,6 +43,8 @@ type Proxy struct {
 	ui_stats UI_Stats
 
 	startTime time.Time
+
+	interArrivalTime int
 }
 
 // each time a new request is sent, a Request object is created and stored in sent
@@ -60,7 +62,7 @@ type ReceivedMessage struct {
 
 // NewProxy creates a new proxy object
 
-func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugLevel int) *Proxy {
+func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, interArrivalTime int) *Proxy {
 
 	pr := Proxy{
 		name:            name,
@@ -80,6 +82,7 @@ func NewProxy(name int64, cfg configuration.InstanceConfig, debugOn bool, debugL
 			cpu:        0,
 			mem:        0,
 		},
+		interArrivalTime: interArrivalTime,
 	}
 
 	// initialize the addrList
@@ -115,7 +118,7 @@ func (pr *Proxy) Run() {
 	go func() {
 		for true {
 			m_object := <-pr.incomingChan
-			pr.debug("Received message", 0)
+			pr.debug("Received message from "+string(m_object.sender), 12)
 			pr.handleMessage(m_object.message.(*Message), m_object.sender)
 		}
 	}()

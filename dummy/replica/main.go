@@ -15,6 +15,7 @@ func main() {
 	debugOn := flag.Bool("debugOn", false, "true / false")
 	debugLevel := flag.Int("debugLevel", 1, "debug level")
 	ui := flag.Bool("ui", false, "true / false")
+	interArrivalTime := flag.Int("interArrivalTime", 100, "inter arrival time in ms")
 
 	flag.Parse()
 
@@ -23,7 +24,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	proxyInstance := dummy.NewProxy(*name, *cfg, *debugOn, *debugLevel)
+	proxyInstance := dummy.NewProxy(*name, *cfg, *debugOn, *debugLevel, *interArrivalTime)
 	if *ui {
 		go dummy.DoUi(proxyInstance)
 	}

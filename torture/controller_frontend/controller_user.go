@@ -71,22 +71,22 @@ func StartAttack(nodes []torture.Attacker) {
 		//time.Sleep(2 * time.Second)
 
 		// queueall
-		for _, node := range nodes {
-			node.QueueAllMessages(true)
-		}
-		time.Sleep(2 * time.Second)
+		//for _, node := range nodes {
+		//	node.QueueAllMessages(true)
+		//}
+		//time.Sleep(2 * time.Second)
 
 		// allow message
 
-		for _, node := range nodes {
-			node.AllowMessages(20)
-		}
+		//for _, node := range nodes {
+		//	node.AllowMessages(20)
+		//}
 		time.Sleep(2 * time.Second)
 
 		//resetAll
-		for _, node := range nodes {
-			node.ResetAll()
-		}
+		//for _, node := range nodes {
+		//	node.ResetAll()
+		//}
 		time.Sleep(6 * time.Second)
 
 	}

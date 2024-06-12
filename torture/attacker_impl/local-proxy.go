@@ -129,33 +129,31 @@ func (l *Local_Proxy) runProxy(sPort string, dPort string) {
 			if err != nil {
 				panic(err.Error())
 			}
-			l.debug("new connection to "+sPort, 2)
+			l.debug("new connection from remote replica to "+sPort, 2)
 			rConn, err := net.Dial("tcp", l.dest_ip+":"+dPort)
 			if err != nil {
 				panic(err.Error())
 			}
-			l.debug("new connection to "+dPort, 2)
+			l.debug("setup new connection to local replica "+dPort, 2)
 			go l.runPipe(sConn, rConn)
 		}
 	}(sPort, dPort)
 }
 
 func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
-	buffer := make([]byte, 512)
-
 	incoming := make(chan []byte, 1000)
 	go func() {
-		for {
+		for true {
+			buffer := make([]byte, 1000)
 			n, err := sCon.Read(buffer)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
+			if err == nil && n > 0 {
+				incoming <- buffer[:n]
+				l.debug("packet received", 2)
 			}
-			incoming <- buffer[:n]
 		}
 	}()
 	go func() {
-		for {
+		for true {
 			l.mu.RLock()
 			delayPackets := l.delayPackets
 			lossPackets := l.lossPackets
@@ -174,6 +172,7 @@ func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
 			}
 
 			newPacket := <-incoming
+			l.debug("packet dequeued", 2)
 			// handle delay
 			time.Sleep(time.Duration(delayPackets) * time.Millisecond)
 
@@ -205,8 +204,10 @@ func (l *Local_Proxy) runPipe(sCon net.Conn, dCon net.Conn) {
 			for i := 0; i < dupC; i++ {
 				_, err := dCon.Write(newPacket)
 				if err != nil {
-					fmt.Println(err.Error())
+					fmt.Println("socket writing error " + dCon.RemoteAddr().String() + " " + err.Error())
 					return
+				} else {
+					l.debug("packet sent", 2)
 				}
 			}
 		}

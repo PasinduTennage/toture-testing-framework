@@ -64,5 +64,5 @@ func generateMetrics(pr *Proxy) {
 }
 
 func DoUi(pr *Proxy) {
-	ListenFrontEnd(strconv.FormatInt(pr.name*10000+100, 10), pr)
+	ListenFrontEnd(strconv.FormatInt(pr.name*10000+200, 10), pr)
 }
