@@ -8,9 +8,9 @@ To enable that, run ```sudo setcap cap_net_admin,cap_net_raw+ep $(which tc)```
 
 ```sudo setcap cap_net_admin=eip  /usr/sbin/xtables-nft-multi```
 
-sudo modprobe ip_tables
-sudo modprobe nfnetlink_queue
-sudo apt-get install libcap2-bin
+```sudo modprobe ip_tables```
+```sudo modprobe nfnetlink_queue```
+```sudo apt-get install libcap2-bin```
 
 ## Precautions
 
