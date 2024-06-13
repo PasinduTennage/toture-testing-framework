@@ -1,7 +1,6 @@
 interArrivalTime=$1
 
 dummy_path="dummy/bin/dummy"
-torture_path="torture/bin/torture"
 
 /bin/bash build.sh
 
@@ -30,9 +29,7 @@ xdg-open "http://localhost:63342/toture-testing-consensus/dummy/run/index.html/?
 
 echo "Started 5 dummy replicas"
 
-sudo /bin/bash dummy/run/local-run-torture.sh
-
-sleep 10
+sleep 200000
 
 pkill dummy; pkill dummy; pkill dummy; pkill dummy; pkill dummy
 pkill torture; pkill torture; pkill torture; pkill torture; pkill torture

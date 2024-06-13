@@ -1,3 +1,5 @@
+torture_path="torture/bin/torture"
+
 nohup ./${torture_path} --name 11 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/11.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/11.log &
 nohup ./${torture_path} --name 12 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/12.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/12.log &
 nohup ./${torture_path} --name 13 --config torture/configuration/local-config.cfg  --replicaConfig torture/configuration/local_consensus_config/13.cfg --debugOn --debugLevel 2 --attacker localNetEm > logs/torture/13.log &
