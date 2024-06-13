@@ -308,11 +308,7 @@ func (l *Local_Proxy) QueueAllMessages(on bool) error {
 	l.queued = on
 	numThreads := l.numConnections
 	l.mu.Unlock()
-	for i := 0; i < numThreads+100; i++ {
-		if !on {
-			l.allowMessageIfQueued <- true
-		}
-	}
+	l.AllowMessages(numThreads + 5)
 	return nil
 }
 
