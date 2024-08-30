@@ -15,10 +15,12 @@ func NewBasicPerformance() *Performance {
 	}
 }
 
-func NewPerformance() *Performance {
-	return &Performance{}
+func NewPerformance() Performance {
+	return Performance{}
 }
 
-func (p *Performance) WithOptions(options map[string]string) {
-	p.Option = options
+func NewPerformanceWithOptions(options map[string]string) Performance {
+	return Performance{
+		Option: options,
+	}
 }

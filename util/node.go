@@ -1,29 +1,14 @@
 package util
 
 type Node struct {
-	ID int
-	IP string
+	Id       int
+	Ip       string
+	Username string
+	HomeDir  string
 }
 
 func NewNode() *Node {
 	return &Node{}
-}
-
-func (n *Node) GetID() int {
-	return n.ID
-}
-
-func (n *Node) GetIP() string {
-	return n.IP
-
-}
-
-func (n *Node) SetID(id int) {
-	n.ID = id
-}
-
-func (n *Node) SetIP(ip string) {
-	n.IP = ip
 }
 
 func (n *Node) SSH(cmd string) error {
