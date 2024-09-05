@@ -1,6 +1,4 @@
-torture/bin/
-dummy/bin/
-vendor/
+consenbench/bin/
 logs/
 
 *.log
