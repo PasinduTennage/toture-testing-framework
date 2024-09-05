@@ -14,7 +14,7 @@ func (ba *Baxos) Bootstrap(nodes []util.Node, options consensus.ConsensusOptions
 }
 
 func (ba *Baxos) Get_Performance_Stats(nodes []util.Node, performance util.Performance, crashed_nodes []util.Node, options consensus.ConsensusOptions) util.Performance {
-	return util.NewPerformance() // get performance stats from the nodes except the crashed and update the performance object
+	return performance // get performance stats from the nodes except the crashed and update the performance object
 }
 
 func (ba *Baxos) ExtractOptions(filepath string) consensus.ConsensusOptions {
