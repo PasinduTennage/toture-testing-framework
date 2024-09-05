@@ -14,5 +14,4 @@ The tool can be used to test the consensus algorithm under different fault condi
 ## Precautions
 
 Run this program in a VM, to avoid any problem in your host machine
-
 This project is currently under development, and is ""not"" ready for production use.
