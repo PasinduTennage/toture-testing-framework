@@ -1,11 +1,11 @@
 # toture-testing-consensus
 
+This repository implements a tool to test the consensus algorithms.
+The tool can be used to test the consensus algorithm under different fault conditions.
+
 ## Requirements
 
-This tool uses Linux traffic control (```tc```), and assumes that a non-root user can run the ```tc``` command. 
-
-To enable that, run ```sudo setcap cap_net_admin,cap_net_raw+ep $(which tc)```
-
+```sudo setcap cap_net_admin,cap_net_raw+ep $(which tc)```
 ```sudo setcap cap_net_admin=eip  /usr/sbin/xtables-nft-multi```
 ```sudo modprobe ip_tables```
 ```sudo modprobe nfnetlink_queue```
@@ -15,4 +15,4 @@ To enable that, run ```sudo setcap cap_net_admin,cap_net_raw+ep $(which tc)```
 
 Run this program in a VM, to avoid any problem in your host machine
 
-## Dummy
+This project is currently under development, and is ""not"" ready for production use.
