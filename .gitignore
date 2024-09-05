@@ -1,6 +1,6 @@
 consenbench/bin/
 logs/
-
+vendor/
 *.log
 *.csv
 *.pdf
