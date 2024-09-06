@@ -1,6 +1,7 @@
 # toture-testing-consensus
 
 This repository implements a tool to test the consensus algorithms.
+
 The tool can be used to test the consensus algorithm under different fault conditions.
 
 ## Requirements
@@ -14,4 +15,5 @@ The tool can be used to test the consensus algorithm under different fault condi
 ## Precautions
 
 Run this program in a VM, to avoid any problem in your host machine
-This project is currently under development, and is ""not"" ready for production use.
+
+This project is currently in the primary stage and under huge development, and is ""not"" ready for production use.
