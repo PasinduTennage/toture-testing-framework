@@ -18,8 +18,8 @@ type Controller struct {
 	Nodes      []*util.Node
 	Network    *common.Network // to communicate with the clients
 	Consensus  protocols.Consensus
-	InputChan  chan interface{}
-	OutputChan chan interface{}
+	InputChan  chan common.RPCPair
+	OutputChan chan common.OutgoingRPC
 }
 
 func NewController(options ControllerOptions) *Controller {

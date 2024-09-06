@@ -9,8 +9,8 @@ type ClientOptions struct {
 type Client struct {
 	Id         int
 	Network    *common.Network // to communicate with the controller
-	InputChan  chan interface{}
-	OutputChan chan interface{}
+	InputChan  chan common.RPCPair
+	OutputChan chan common.OutgoingRPC
 }
 
 func NewClient(options ClientOptions) *Client {
