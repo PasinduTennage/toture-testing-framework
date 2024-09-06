@@ -9,7 +9,7 @@ type Network struct {
 	ListenAddress       string
 	IncomingConnections map[int]*bufio.Reader
 	OutgoingConnections map[int]*bufio.Writer
-	OutChan             chan RPCPair
+	OutChan             chan OutgoingRPC
 	OutMutex            map[int]*sync.Mutex
 	InputChan           chan OutgoingRPC
 	RemoteAddresses     []string
@@ -20,7 +20,7 @@ type NetworkConfig struct {
 	RemoteAddresses []string // to connect to
 }
 
-func NewNetwork(config *NetworkConfig, outChan chan RPCPair, inChan chan OutgoingRPC) *Network {
+func NewNetwork(config *NetworkConfig, outChan chan OutgoingRPC, inChan chan OutgoingRPC) *Network {
 	return &Network{
 		ListenAddress:       config.ListenAddress,
 		IncomingConnections: make(map[int]*bufio.Reader),

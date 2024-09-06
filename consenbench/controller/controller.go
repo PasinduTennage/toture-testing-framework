@@ -18,7 +18,7 @@ type Controller struct {
 	Nodes      []*util.Node
 	Network    *common.Network // to communicate with the clients
 	Consensus  protocols.Consensus
-	InputChan  chan common.RPCPair
+	InputChan  chan common.OutgoingRPC
 	OutputChan chan common.OutgoingRPC
 }
 
@@ -57,5 +57,16 @@ func (c *Controller) Run(protocol string) error {
 	// bootstrap the consensus protocol
 	//c.consensus.Bootstrap(c.nodes, c.consensus.ExtractOptions())
 	//
+	return nil
+}
+
+func (c *Controller) HandleInputStream() error {
+	// handle the messages from the clients about machine stats
+	go func() {
+		for true {
+			_ = <-c.InputChan
+			// update the stats of the node
+		}
+	}()
 	return nil
 }
