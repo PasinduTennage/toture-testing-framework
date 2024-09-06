@@ -49,14 +49,16 @@ func (c *Controller) CopyConsensus(protocol string) error {
 
 // run the controller
 
-func (c *Controller) Run(protocol string) error {
+func (c *Controller) Run(protocol string, attack string) error {
 	// initialize the consensus object using the protocol string
 
 	// run all remote clients using node interface and tcp connect
 
 	// bootstrap the consensus protocol
-	//c.consensus.Bootstrap(c.nodes, c.consensus.ExtractOptions())
-	//
+
+	// instantiate the node and link objects and start the attack, only instantiate for the nodes that are running replicas, use the consensus options object
+
+	// collect stats from consensus object and print them
 	return nil
 }
 

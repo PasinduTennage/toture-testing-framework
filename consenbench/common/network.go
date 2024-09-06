@@ -38,7 +38,7 @@ func (n *Network) ConnectRemote() error {
 }
 
 func (n *Network) Listen() error {
-	// listen to self.ListenAddress
+	// listen to self.ListenAddress until all expected peers are connected
 	return nil
 }
 
