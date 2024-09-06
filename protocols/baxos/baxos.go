@@ -17,6 +17,6 @@ func (ba *Baxos) Get_Performance_Stats(nodes []*util.Node, performance util.Perf
 	return performance // get performance stats from the nodes except the crashed and update the performance object
 }
 
-func (ba *Baxos) ExtractOptions() protocols.ConsensusOptions {
+func (ba *Baxos) ExtractOptions(optionsFile string) protocols.ConsensusOptions {
 	return protocols.ConsensusOptions{}
 }

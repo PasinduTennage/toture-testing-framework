@@ -14,15 +14,21 @@ type ControllerOptions struct {
 
 // Controller struct
 type Controller struct {
-	id            int
-	nodes         []*util.Node
-	network       *common.Network // to communicate with the clients
-	consensus     protocols.Consensus
-	inputMessages chan interface{}
+	Id         int
+	Nodes      []*util.Node
+	Network    *common.Network // to communicate with the clients
+	Consensus  protocols.Consensus
+	InputChan  chan interface{}
+	OutputChan chan interface{}
 }
 
 func NewController(options ControllerOptions) *Controller {
 	return &Controller{}
+}
+
+func (c *Controller) NetworkInit() error {
+	// initialize the network layer
+	return nil
 }
 
 // copy clients and start the client binary
@@ -37,7 +43,7 @@ func (c *Controller) BootstrapClients() error {
 // copy the consensus binary
 
 func (c *Controller) CopyConsensus(protocol string) error {
-	// copy the consensus binary to all the nodes using the appropriate consensus object
+	// copy the consensus binary to all the nodes
 	return nil
 }
 
@@ -49,7 +55,7 @@ func (c *Controller) Run(protocol string) error {
 	// run all remote clients using node interface and tcp connect
 
 	// bootstrap the consensus protocol
-	c.consensus.Bootstrap(c.nodes, c.consensus.ExtractOptions())
+	//c.consensus.Bootstrap(c.nodes, c.consensus.ExtractOptions())
 	//
 	return nil
 }

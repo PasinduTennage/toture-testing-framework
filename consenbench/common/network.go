@@ -1,12 +1,18 @@
 package common
 
-import "bufio"
+import (
+	"bufio"
+	"sync"
+)
 
 type Network struct {
 	ListenAddress       string
 	IncomingConnections map[int]*bufio.Reader
 	OutgoingConnections map[int]*bufio.Writer
-	ListenChan          chan interface{}
+	OutChan             chan interface{}
+	OutMutex            map[int]*sync.Mutex
+	InputChan           chan interface{}
+	RemoteAddresses     []string
 }
 
 type NetworkConfig struct {
@@ -14,12 +20,15 @@ type NetworkConfig struct {
 	RemoteAddresses []string // to connect to
 }
 
-func NewNetwork(config *NetworkConfig, listenChan chan interface{}) *Network {
+func NewNetwork(config *NetworkConfig, outChan chan interface{}, inChan chan interface{}) *Network {
 	return &Network{
 		ListenAddress:       config.ListenAddress,
 		IncomingConnections: make(map[int]*bufio.Reader),
 		OutgoingConnections: make(map[int]*bufio.Writer),
-		ListenChan:          listenChan,
+		OutChan:             outChan,
+		OutMutex:            make(map[int]*sync.Mutex),
+		InputChan:           inChan,
+		RemoteAddresses:     config.RemoteAddresses,
 	}
 }
 
@@ -35,5 +44,10 @@ func (n *Network) Listen() error {
 
 func (n *Network) HandleReadStream(reader *bufio.Reader) error {
 	// read from reader and put in to self.ListenChan
+	return nil
+}
+
+func (n *Network) Send(peer int) error {
+	// send to peer
 	return nil
 }
