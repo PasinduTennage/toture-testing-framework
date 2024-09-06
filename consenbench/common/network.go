@@ -9,9 +9,9 @@ type Network struct {
 	ListenAddress       string
 	IncomingConnections map[int]*bufio.Reader
 	OutgoingConnections map[int]*bufio.Writer
-	OutChan             chan OutgoingRPC
+	OutChan             chan *RPCPairPeer
 	OutMutex            map[int]*sync.Mutex
-	InputChan           chan OutgoingRPC
+	InputChan           chan *RPCPairPeer
 	RemoteAddresses     []string
 }
 
@@ -20,7 +20,7 @@ type NetworkConfig struct {
 	RemoteAddresses []string // to connect to
 }
 
-func NewNetwork(config *NetworkConfig, outChan chan OutgoingRPC, inChan chan OutgoingRPC) *Network {
+func NewNetwork(config *NetworkConfig, outChan chan *RPCPairPeer, inChan chan *RPCPairPeer) *Network {
 	return &Network{
 		ListenAddress:       config.ListenAddress,
 		IncomingConnections: make(map[int]*bufio.Reader),
@@ -33,7 +33,7 @@ func NewNetwork(config *NetworkConfig, outChan chan OutgoingRPC, inChan chan Out
 }
 
 func (n *Network) ConnectRemote() error {
-	// connect to all remote nodes
+	// connect to all remote nodes and then return true
 	return nil
 }
 
@@ -42,12 +42,12 @@ func (n *Network) Listen() error {
 	return nil
 }
 
-func (n *Network) HandleReadStream(reader *bufio.Reader) error {
+func (n *Network) HandleReadStream(reader *bufio.Reader, peer int) error {
 	// read from reader and put in to self.ListenChan
 	return nil
 }
 
-func (n *Network) Send(peer int) error {
+func (n *Network) Send(rpc *RPCPairPeer) error {
 	// send to peer
 	return nil
 }

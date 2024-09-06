@@ -11,7 +11,7 @@ type RPCPair struct {
 	Obj  Serializable
 }
 
-type OutgoingRPC struct {
+type RPCPairPeer struct {
 	RpcPair *RPCPair
 	Peer    int32
 }
