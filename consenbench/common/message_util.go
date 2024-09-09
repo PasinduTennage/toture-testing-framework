@@ -84,7 +84,7 @@ func unmarshalMessage(wire io.Reader, m proto.Message) error {
 	return nil
 }
 
-// ControlMsg wrapper
+// ControlMsg wrappers
 
 func (t *ControlMsg) Marshal(wire io.Writer) error {
 	return marshalMessage(wire, t)
