@@ -1,6 +1,10 @@
 package util
 
-import "sync"
+import (
+	"fmt"
+	"os/exec"
+	"sync"
+)
 
 type NodeStat struct {
 	cpu_usage   float64
@@ -10,36 +14,71 @@ type NodeStat struct {
 }
 
 type Node struct {
-	Id        int
-	Ip        string
-	Username  string
-	HomeDir   string
-	stat      NodeStat
-	statMutex sync.Mutex
+	Id             int
+	Ip             string
+	Username       string
+	HomeDir        string
+	stat           NodeStat
+	statMutex      sync.Mutex
+	privateKeyPath string
 }
 
-func NewNode() *Node {
-	return &Node{}
+func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath string) *Node {
+	return &Node{
+		Id:       Id,
+		Ip:       Ip,
+		Username: Username,
+		HomeDir:  HomeDir,
+		stat: NodeStat{
+			cpu_usage:   0.0,
+			mem_usage:   0.0,
+			network_in:  0.0,
+			network_out: 0.0,
+		},
+		statMutex:      sync.Mutex{},
+		privateKeyPath: privateKeyPath,
+	}
 }
+
+// Execute a command on the node
 
 func (n *Node) ExecCmd(cmd string) error {
-	// run the given command on the node
+	sshCmd := exec.Command("ssh", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
+	output, err := sshCmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to execute command via SSH: %w, output: %s", err, output)
+	}
 	return nil
 }
+
+// download the file from the remote location to the local location
 
 func (n *Node) Get_Load(remote_location string, local_location string) error {
-	// download the file from the remote location to the local location
+
+	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location), local_location)
+	output, err := scpCmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to download file via SCP: %w, output: %s", err, output)
+	}
 	return nil
 }
 
+// upload the file from the local location to the remote location
+
 func (n *Node) Put_Load(local_location string, remote_location string) error {
-	// upload the file from the local location to the remote location
+	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, local_location, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location))
+	output, err := scpCmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to upload file via SCP: %w, output: %s", err, output)
+	}
 	return nil
 }
+
+// shut down the node
 
 func (n *Node) Shut_Down() error {
 	// shut down the node
-	return nil
+	return n.ExecCmd("sudo shutdown -h now")
 }
 
 func (n *Node) UpdateStats(perf []float64) {
