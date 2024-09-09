@@ -14,12 +14,11 @@ import (
 type Network struct {
 	Id                  int
 	ListenAddress       string
+	RemoteAddresses     map[int]string
 	IncomingConnections map[int]*bufio.Reader
 	OutgoingConnections map[int]*bufio.Writer
 	OutMutex            map[int]*sync.Mutex
 	OutChan             chan *RPCPairPeer
-	InputChan           chan *RPCPairPeer
-	RemoteAddresses     map[int]string
 	logger              *util.Logger
 	rpcTable            map[uint8]*RPCPair // map each RPC type (message type) to its unique number
 	messageCodes        MessageCode
@@ -30,16 +29,15 @@ type NetworkConfig struct {
 	RemoteAddresses map[int]string // to connect to
 }
 
-func NewNetwork(Id int, config *NetworkConfig, outChan chan *RPCPairPeer, inChan chan *RPCPairPeer, logger *util.Logger) *Network {
+func NewNetwork(Id int, config *NetworkConfig, outChan chan *RPCPairPeer, logger *util.Logger) *Network {
 	return &Network{
 		Id:                  Id,
 		ListenAddress:       config.ListenAddress,
+		RemoteAddresses:     config.RemoteAddresses,
 		IncomingConnections: make(map[int]*bufio.Reader),
 		OutgoingConnections: make(map[int]*bufio.Writer),
-		OutChan:             outChan,
 		OutMutex:            make(map[int]*sync.Mutex),
-		InputChan:           inChan,
-		RemoteAddresses:     config.RemoteAddresses,
+		OutChan:             outChan,
 		logger:              logger,
 		rpcTable:            make(map[uint8]*RPCPair),
 		messageCodes:        GetRPCCodes(),
@@ -50,7 +48,7 @@ func (n *Network) RegisterRPC(msgObj Serializable, code uint8) {
 	n.rpcTable[code] = &RPCPair{Code: code, Obj: msgObj}
 }
 
-// connect to all remote nodes and then return true
+// connect to all remote nodes
 
 func (n *Network) ConnectRemotes() error {
 	for id, address := range n.RemoteAddresses {
@@ -66,9 +64,10 @@ func (n *Network) ConnectRemotes() error {
 				if err != nil {
 					panic("Error while connecting to replica " + strconv.Itoa(int(id)))
 				}
+				n.logger.Debug("Outgoing TCP Connected to "+strconv.Itoa(id), 3)
 				break
 			} else {
-				n.logger.Debug("Error while connecting to "+strconv.Itoa(int(id))+" "+err.Error(), 3)
+				n.logger.Debug("Error while connecting to "+strconv.Itoa(id)+" "+err.Error(), 3)
 			}
 		}
 	}
@@ -102,15 +101,17 @@ func (n *Network) Listen() error {
 
 			n.IncomingConnections[id] = bufio.NewReader(conn)
 			go n.HandleReadStream(n.IncomingConnections[id], id)
+			n.logger.Debug("Incoming TCP Connected from "+strconv.Itoa(id), 3)
 			counter++
 		}
 		wg.Done()
 	}()
 	wg.Wait()
+	n.logger.Debug("All incoming connections are established", 3)
 	return nil
 }
 
-// read from reader and put in to self.ListenChan
+// read from reader
 
 func (n *Network) HandleReadStream(reader *bufio.Reader, id int) error {
 	var msgType uint8
@@ -124,7 +125,7 @@ func (n *Network) HandleReadStream(reader *bufio.Reader, id int) error {
 		if rpair, present := n.rpcTable[msgType]; present {
 			obj := rpair.Obj.New()
 			if err = obj.Unmarshal(reader); err != nil {
-				n.logger.Debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err.Error()), 3)
+				n.logger.Debug("Error while unmarshalling from "+strconv.Itoa(id)+fmt.Sprintf(" %v", err.Error()), 3)
 				return err
 			}
 			n.OutChan <- &RPCPairPeer{
@@ -148,7 +149,7 @@ func (n *Network) HandleReadStream(reader *bufio.Reader, id int) error {
 func (n *Network) Send(rpc *RPCPairPeer) error {
 	w := n.OutgoingConnections[rpc.Peer]
 	if w == nil {
-		panic("replica not found" + strconv.Itoa(rpc.Peer))
+		panic("remote machine not found" + strconv.Itoa(rpc.Peer))
 	}
 	n.OutMutex[rpc.Peer].Lock()
 	err := w.WriteByte(rpc.RpcPair.Code)
@@ -170,6 +171,6 @@ func (n *Network) Send(rpc *RPCPairPeer) error {
 		return nil
 	}
 	n.OutMutex[rpc.Peer].Unlock()
-	n.logger.Debug("Internal sent message to "+strconv.Itoa(rpc.Peer), 0)
+	n.logger.Debug("Sent message to "+strconv.Itoa(rpc.Peer), 0)
 	return nil
 }
