@@ -3,7 +3,6 @@ package controller
 import (
 	"toture-test/consenbench/common"
 	"toture-test/protocols"
-	"toture-test/util"
 )
 
 type ControllerOptions struct {
@@ -15,7 +14,7 @@ type ControllerOptions struct {
 // Controller struct
 type Controller struct {
 	Id         int
-	Nodes      []*util.Node
+	Nodes      []*common.Node
 	Network    *common.Network // to communicate with the clients
 	Consensus  protocols.Consensus
 	InputChan  chan common.RPCPairPeer

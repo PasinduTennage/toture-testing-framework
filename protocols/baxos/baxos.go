@@ -1,6 +1,7 @@
 package consensus
 
 import (
+	"toture-test/consenbench/common"
 	"toture-test/protocols"
 	"toture-test/util"
 )
@@ -8,12 +9,12 @@ import (
 type Baxos struct {
 }
 
-func (ba *Baxos) Bootstrap(nodes []*util.Node, options protocols.ConsensusOptions) error {
+func (ba *Baxos) Bootstrap(nodes []*common.Node, options protocols.ConsensusOptions) error {
 	return nil
 	// logic to bootstrap
 }
 
-func (ba *Baxos) Get_Performance_Stats(nodes []*util.Node, performance util.Performance, crashed_nodes []*util.Node, options protocols.ConsensusOptions) util.Performance {
+func (ba *Baxos) Get_Performance_Stats(nodes []*common.Node, performance util.Performance, crashed_nodes []*common.Node, options protocols.ConsensusOptions) util.Performance {
 	return performance // get performance stats from the nodes except the crashed and update the performance object
 }
 

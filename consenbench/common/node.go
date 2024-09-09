@@ -1,9 +1,10 @@
-package util
+package common
 
 import (
 	"fmt"
 	"os/exec"
 	"sync"
+	"toture-test/util"
 )
 
 type NodeStat struct {
@@ -21,10 +22,10 @@ type Node struct {
 	stat           NodeStat
 	statMutex      *sync.Mutex
 	privateKeyPath string
-	Logger         *Logger
+	Logger         *util.Logger
 }
 
-func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath string, logger *Logger) *Node {
+func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath string, logger *util.Logger) *Node {
 	return &Node{
 		Id:       Id,
 		Ip:       Ip,
