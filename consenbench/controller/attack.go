@@ -52,7 +52,3 @@ func (a *AttackLink) SetLoss() {
 func (a *AttackLink) SetBandwidth() {
 
 }
-
-type Attacker interface {
-	Attack([]AttackNode, [][]AttackLink, int) // duration
-}
