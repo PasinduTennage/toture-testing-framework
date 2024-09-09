@@ -57,5 +57,4 @@ func (t *TimerWithCancel) Cancel() {
 		//Unsuccessful
 		break
 	}
-
 }
