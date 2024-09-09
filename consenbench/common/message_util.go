@@ -13,7 +13,7 @@ type RPCPair struct {
 
 type RPCPairPeer struct {
 	RpcPair *RPCPair
-	Peer    int32
+	Peer    int
 }
 
 /*

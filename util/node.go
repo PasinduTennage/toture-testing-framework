@@ -19,11 +19,12 @@ type Node struct {
 	Username       string
 	HomeDir        string
 	stat           NodeStat
-	statMutex      sync.Mutex
+	statMutex      *sync.Mutex
 	privateKeyPath string
+	Logger         *Logger
 }
 
-func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath string) *Node {
+func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath string, logger *Logger) *Node {
 	return &Node{
 		Id:       Id,
 		Ip:       Ip,
@@ -35,8 +36,9 @@ func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath 
 			network_in:  0.0,
 			network_out: 0.0,
 		},
-		statMutex:      sync.Mutex{},
+		statMutex:      &sync.Mutex{},
 		privateKeyPath: privateKeyPath,
+		Logger:         logger,
 	}
 }
 
@@ -46,7 +48,10 @@ func (n *Node) ExecCmd(cmd string) error {
 	sshCmd := exec.Command("ssh", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
+		n.Logger.Debug(fmt.Sprintf("failed to execute command via SSH, err:%v, output:%vs for node:%v", err, output, n.Id), 0)
 		return fmt.Errorf("failed to execute command via SSH: %w, output: %s", err, output)
+	} else {
+		n.Logger.Debug(fmt.Sprintf("Executed command via SSH: %v, output: %v for node: %v", cmd, output, n.Id), 0)
 	}
 	return nil
 }
@@ -58,7 +63,10 @@ func (n *Node) Get_Load(remote_location string, local_location string) error {
 	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location), local_location)
 	output, err := scpCmd.CombinedOutput()
 	if err != nil {
+		n.Logger.Debug(fmt.Sprintf("failed to download file via SCP, errpr:%v, output:%v for node:%v", err, output, n.Id), 0)
 		return fmt.Errorf("failed to download file via SCP: %w, output: %s", err, output)
+	} else {
+		n.Logger.Debug(fmt.Sprintf("Download using SCP successful for node %v", n.Id), 0)
 	}
 	return nil
 }
@@ -69,7 +77,10 @@ func (n *Node) Put_Load(local_location string, remote_location string) error {
 	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, local_location, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location))
 	output, err := scpCmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to upload file via SCP: %w, output: %s", err, output)
+		n.Logger.Debug(fmt.Sprintf("failed to upload file via SCP, err:%v, output:%s for node:%v", err, output, n.Id), 0)
+		return fmt.Errorf("failed to upload file via SCP: %v, output: %s", err, output)
+	} else {
+		n.Logger.Debug(fmt.Sprintf("Upload using SCP successful for node %v", n.Id), 0)
 	}
 	return nil
 }
