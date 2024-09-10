@@ -2,6 +2,8 @@ package common
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os/exec"
 	"sync"
 	"toture-test/util"
@@ -25,22 +27,15 @@ type Node struct {
 	Logger         *util.Logger
 }
 
-func NewNode(Id int, Ip string, Username string, HomeDir string, privateKeyPath string, logger *util.Logger) *Node {
-	return &Node{
-		Id:       Id,
-		Ip:       Ip,
-		Username: Username,
-		HomeDir:  HomeDir,
-		stat: NodeStat{
-			cpu_usage:   0.0,
-			mem_usage:   0.0,
-			network_in:  0.0,
-			network_out: 0.0,
-		},
-		statMutex:      &sync.Mutex{},
-		privateKeyPath: privateKeyPath,
-		Logger:         logger,
+func (n *Node) InitNode(logger *util.Logger) {
+	n.stat = NodeStat{
+		cpu_usage:   0.0,
+		mem_usage:   0.0,
+		network_in:  0.0,
+		network_out: 0.0,
 	}
+	n.statMutex = &sync.Mutex{}
+	n.Logger = logger
 }
 
 // Execute a command on the node
@@ -120,4 +115,40 @@ func (n *Node) GetStats() NodeStat {
 	}
 	n.statMutex.Unlock()
 	return stats
+}
+
+func GetNodes(filename string) []*Node {
+	type Nodes struct {
+		Nodes []*Node `yaml:"nodes"`
+	}
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic("Error reading file: " + err.Error())
+	}
+
+	var nodes Nodes
+	err = yaml.Unmarshal(data, &nodes)
+	if err != nil {
+		panic("Error unmarshalling YAML: " + err.Error())
+	}
+
+	return nodes.Nodes[1:]
+}
+
+func GetController(filename string) *Node {
+	type Nodes struct {
+		Nodes []*Node `yaml:"nodes"`
+	}
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic("Error reading file: " + err.Error())
+	}
+
+	var nodes Nodes
+	err = yaml.Unmarshal(data, &nodes)
+	if err != nil {
+		panic("Error unmarshalling YAML: " + err.Error())
+	}
+
+	return nodes.Nodes[0]
 }
