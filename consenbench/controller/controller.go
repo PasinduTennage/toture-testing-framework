@@ -1,40 +1,72 @@
 package controller
 
 import (
+	"fmt"
+	"time"
 	"toture-test/consenbench/common"
-	"toture-test/protocols"
+	"toture-test/util"
 )
 
 type ControllerOptions struct {
 	AttackDuration int      // second
 	Attacks        []string // set of attacks to run
 	NodeInfoFile   string   // the yaml file containing the ip address of each node, controller port, client port
+	debugOn        bool
+	debugLevel     int
 }
 
 // Controller struct
 type Controller struct {
-	Id         int
-	Nodes      []*common.Node
-	Network    *common.Network // to communicate with the clients
-	Consensus  protocols.Consensus
-	InputChan  chan common.RPCPairPeer
-	OutputChan chan common.RPCPairPeer
-	Options    ControllerOptions
+	Id        int
+	Nodes     []*common.Node
+	Network   *common.Network         // to communicate with the clients
+	InputChan chan common.RPCPairPeer // message from the clients
+	Options   ControllerOptions
+	logger    *util.Logger
 }
 
-func NewController(options ControllerOptions) *Controller {
+func NewController(Id int, Options ControllerOptions) *Controller {
 	return &Controller{
-		Options: options,
+		Id:        Id,
+		InputChan: make(chan common.RPCPairPeer, 10000),
+		Options:   Options,
+		logger:    util.NewLogger(Options.debugLevel, Options.debugOn),
 	}
 }
 
 // copy clients and start the client binary, check connections and close clients
 
 func (c *Controller) BootstrapClients() error {
+
+	c.InitiliazeNodes()
+
 	// copy the client binary to all the nodes
-	// start the client binary and initiate the tcp connections
-	// if all tcp connections succeed than end the remote client program
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].ExecCmd(fmt.Sprintf("mkdir -p %vbench", c.Nodes[i].HomeDir))
+		c.Nodes[i].Put_Load("consenbench/bin/bench", fmt.Sprintf("%vbench/", c.Nodes[i].HomeDir))
+		c.Nodes[i].Put_Load("consenbench/assets/ip.yaml", fmt.Sprintf("%vbench/", c.Nodes[i].HomeDir))
+	}
+
+	c.logger.Debug("Copied the client binary to all the nodes", 0)
+
+	// start the client binary
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].Start_Client()
+	}
+	time.Sleep(5 * time.Second)
+	c.logger.Debug("Started the client binary on all the nodes", 0)
+
+	// initiate the tcp connections
+	c.NetworkInit()
+	c.logger.Debug("Initialized the network layer with all clients", 0)
+
+	// close the clients
+	defer c.CloseClients()
+	c.logger.Debug("Closed the clients", 0)
+
+	c.logger.Debug("Bootstrapped the clients, exiting", 0)
 	return nil
+
 }
 
 // start listening to incoming connections and connect to all remote nodes
@@ -77,4 +109,19 @@ func (c *Controller) HandleInputStream() error {
 		}
 	}()
 	return nil
+}
+
+func (c *Controller) InitiliazeNodes() {
+
+}
+
+func (c *Controller) CloseClients() {
+	c.Network.Broadcast(&common.RPCPair{
+		Code: common.GetRPCCodes().ControlMsg,
+		Obj: &common.ControlMsg{
+			OperationType: int32(common.GetOperationCodes().ShutDown),
+			StringArgs:    nil,
+			IntArgs:       nil,
+		},
+	})
 }

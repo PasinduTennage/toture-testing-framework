@@ -174,3 +174,16 @@ func (n *Network) Send(rpc *RPCPairPeer) error {
 	n.logger.Debug("Sent message to "+strconv.Itoa(rpc.Peer), 0)
 	return nil
 }
+
+// broadcast to all peers
+
+func (n *Network) Broadcast(rpc *RPCPair) error {
+	for id, _ := range n.OutgoingConnections {
+		n.Send(&RPCPairPeer{
+			RpcPair: rpc,
+			Peer:    id,
+		})
+	}
+	n.logger.Debug("Broadcasted message", 0)
+	return nil
+}

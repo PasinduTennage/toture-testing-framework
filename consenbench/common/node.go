@@ -93,6 +93,14 @@ func (n *Node) Shut_Down() error {
 	return n.ExecCmd("sudo shutdown -h now")
 }
 
+// start client
+
+func (n *Node) Start_Client() error {
+	// start the client program
+	return n.ExecCmd(fmt.Sprintf("cd %vbench/ && ./bench --client --config %vbench/ip.yaml --name %v", n.HomeDir, n.HomeDir, n.Id))
+
+}
+
 func (n *Node) UpdateStats(perf []float64) {
 	n.statMutex.Lock()
 	n.stat.cpu_usage = perf[0]

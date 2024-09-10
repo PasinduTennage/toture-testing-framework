@@ -44,6 +44,24 @@ func GetRPCCodes() MessageCode {
 	}
 }
 
+/*
+	A struct that allocates a unique int for each message operation type
+*/
+
+type OperationCodes struct {
+	ShutDown int
+}
+
+/*
+	A static function which assigns a unique int to each operation message type
+*/
+
+func GetOperationCodes() OperationCodes {
+	return OperationCodes{
+		ShutDown: 1,
+	}
+}
+
 func marshalMessage(wire io.Writer, m proto.Message) error {
 	data, err := proto.Marshal(m)
 	if err != nil {
