@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"sync"
 	"time"
 	"toture-test/consenbench/common"
 	"toture-test/util"
@@ -19,8 +20,8 @@ type ControllerOptions struct {
 type Controller struct {
 	Id        int
 	Nodes     []*common.Node
-	Network   *common.Network         // to communicate with the clients
-	InputChan chan common.RPCPairPeer // message from the clients
+	Network   *common.Network          // to communicate with the clients
+	InputChan chan *common.RPCPairPeer // message from the clients
 	Options   ControllerOptions
 	logger    *util.Logger
 }
@@ -28,7 +29,7 @@ type Controller struct {
 func NewController(Id int, Options ControllerOptions) *Controller {
 	return &Controller{
 		Id:        Id,
-		InputChan: make(chan common.RPCPairPeer, 10000),
+		InputChan: make(chan *common.RPCPairPeer, 10000),
 		Options:   Options,
 		logger:    util.NewLogger(Options.debugLevel, Options.debugOn),
 	}
@@ -72,8 +73,24 @@ func (c *Controller) BootstrapClients() error {
 // start listening to incoming connections and connect to all remote nodes
 
 func (c *Controller) NetworkInit() error {
-	// initialize the network layer
+	network_config := common.NetworkConfig{
+		ListenAddress:   common.GetController(c.Options.NodeInfoFile).Ip + ":10080",
+		RemoteAddresses: common.GetRemoteAddresses(c.Nodes),
+	}
+	c.Network = common.NewNetwork(c.Id, &network_config, c.InputChan, c.logger)
+	c.Network.RegisterRPC(&common.ControlMsg{}, common.GetRPCCodes().ControlMsg)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		c.Network.ConnectRemotes()
+		wg.Done()
+	}()
+	c.Network.Listen()
+	wg.Wait()
+	c.logger.Debug("Connected to all remote nodes, both ways!", 0)
 	return nil
+
 }
 
 // copy the consensus binary
@@ -112,7 +129,7 @@ func (c *Controller) HandleInputStream() error {
 }
 
 func (c *Controller) InitiliazeNodes() {
-
+	c.Nodes = common.GetNodes(c.Options.NodeInfoFile)
 }
 
 func (c *Controller) CloseClients() {

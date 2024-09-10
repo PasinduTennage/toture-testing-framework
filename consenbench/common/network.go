@@ -187,3 +187,13 @@ func (n *Network) Broadcast(rpc *RPCPair) error {
 	n.logger.Debug("Broadcasted message", 0)
 	return nil
 }
+
+// get remote addresses from nodes
+
+func GetRemoteAddresses(nodes []*Node) map[int]string {
+	remoteAddresses := make(map[int]string)
+	for _, node := range nodes {
+		remoteAddresses[node.Id] = node.Ip + ":10080"
+	}
+	return remoteAddresses
+}
