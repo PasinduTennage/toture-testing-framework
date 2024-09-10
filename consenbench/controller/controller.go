@@ -92,7 +92,6 @@ func (c *Controller) NetworkInit() error {
 	wg.Wait()
 	c.logger.Debug("Connected to all remote nodes, both ways!", 0)
 	return nil
-
 }
 
 // copy the consensus binary
