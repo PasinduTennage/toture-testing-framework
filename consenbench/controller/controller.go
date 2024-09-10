@@ -61,6 +61,8 @@ func (c *Controller) BootstrapClients() error {
 	c.NetworkInit()
 	c.logger.Debug("Initialized the network layer with all clients", 0)
 
+	c.HandleClientMessages()
+
 	// close the clients
 	defer c.CloseClients()
 	c.logger.Debug("Closed the clients", 0)
@@ -117,7 +119,7 @@ func (c *Controller) Run(protocol string) error {
 	return nil
 }
 
-func (c *Controller) HandleInputStream() error {
+func (c *Controller) HandleClientMessages() error {
 	// handle the messages from the clients about machine stats
 	go func() {
 		for true {
@@ -137,8 +139,6 @@ func (c *Controller) CloseClients() {
 		Code: common.GetRPCCodes().ControlMsg,
 		Obj: &common.ControlMsg{
 			OperationType: int32(common.GetOperationCodes().ShutDown),
-			StringArgs:    nil,
-			IntArgs:       nil,
 		},
 	})
 }
