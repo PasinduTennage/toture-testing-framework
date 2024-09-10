@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"os"
 	"sync"
 	"time"
 	"toture-test/consenbench/common"
@@ -86,13 +85,7 @@ func (c *Client) run() {
 			case common.GetRPCCodes().ControlMsg:
 				// handle control message
 				ctrlMsg := rpcPair.RpcPair.Obj.(*common.ControlMsg)
-				switch ctrlMsg.OperationType {
-				case int32(common.GetOperationCodes().ShutDown):
-					c.logger.Debug("Shutting down the client", 0)
-					os.Exit(0)
-				default:
-					c.logger.Debug("Unknown operation type", 0)
-				}
+				c.Handle(ctrlMsg)
 			default:
 				c.logger.Debug("Unknown message type", 0)
 			}
