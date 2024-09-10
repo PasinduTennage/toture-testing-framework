@@ -5,5 +5,5 @@ option go_package = "common/";
 message ControlMsg {
   int32 operationType = 1;
   repeated string stringArgs = 2;
-  repeated int64 intArgs = 3;
+  repeated float floatArgs = 3;
 }

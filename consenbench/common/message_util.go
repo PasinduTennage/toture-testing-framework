@@ -50,6 +50,7 @@ func GetRPCCodes() MessageCode {
 
 type OperationCodes struct {
 	ShutDown int
+	Stats    int
 }
 
 /*
@@ -59,6 +60,7 @@ type OperationCodes struct {
 func GetOperationCodes() OperationCodes {
 	return OperationCodes{
 		ShutDown: 1,
+		Stats:    2,
 	}
 }
 
