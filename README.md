@@ -11,6 +11,8 @@ The tool can be used to test the consensus algorithm under different fault condi
 ```sudo modprobe ip_tables```
 ```sudo modprobe nfnetlink_queue```
 ```sudo apt-get install libcap2-bin```
+```sudo apt install -y protobuf-compiler```
+
 
 ## Precautions
 

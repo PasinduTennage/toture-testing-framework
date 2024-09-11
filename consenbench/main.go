@@ -1,4 +1,4 @@
-package consenbench
+package main
 
 import (
 	"flag"
