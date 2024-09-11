@@ -115,6 +115,7 @@ func (n *Node) GetStats() NodeStat {
 }
 
 func GetNodes(filename string) []*Node {
+	print("reading node data from filename: ", filename)
 	type Nodes struct {
 		Nodes []*Node `yaml:"nodes"`
 	}
