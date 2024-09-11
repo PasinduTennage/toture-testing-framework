@@ -8,6 +8,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 	"toture-test/util"
 )
 
@@ -68,6 +69,7 @@ func (n *Network) ConnectRemotes() error {
 				break
 			} else {
 				n.logger.Debug("Error while connecting to "+strconv.Itoa(id)+" "+err.Error(), 3)
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}
@@ -78,35 +80,29 @@ func (n *Network) ConnectRemotes() error {
 // listen to self.ListenAddress until all expected peers are connected
 
 func (n *Network) Listen() error {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		counter := 0
-		var b [4]byte
-		bs := b[:4]
-		Listener, err_ := net.Listen("tcp", n.ListenAddress)
-		if err_ != nil {
-			panic("Error while listening to incoming connections")
+	counter := 0
+	var b [4]byte
+	bs := b[:4]
+	Listener, err_ := net.Listen("tcp", n.ListenAddress)
+	if err_ != nil {
+		panic("Error while listening to incoming connections")
+	}
+	for counter < len(n.RemoteAddresses) {
+		conn, err := Listener.Accept()
+		if err != nil {
+			panic(err.Error() + fmt.Sprintf("%v", err.Error()))
 		}
-		for counter < len(n.RemoteAddresses) {
-
-			conn, err := Listener.Accept()
-			if err != nil {
-				panic(err.Error() + fmt.Sprintf("%v", err.Error()))
-			}
-			if _, err := io.ReadFull(conn, bs); err != nil {
-				panic(err.Error() + fmt.Sprintf("%v", err.Error()))
-			}
-			id := int(binary.LittleEndian.Uint16(bs))
-
-			n.IncomingConnections[id] = bufio.NewReader(conn)
-			go n.HandleReadStream(n.IncomingConnections[id], id)
-			n.logger.Debug("Incoming TCP Connected from "+strconv.Itoa(id), 3)
-			counter++
+		if _, err := io.ReadFull(conn, bs); err != nil {
+			panic(err.Error() + fmt.Sprintf("%v", err.Error()))
 		}
-		wg.Done()
-	}()
-	wg.Wait()
+		id := int(binary.LittleEndian.Uint16(bs))
+
+		n.IncomingConnections[id] = bufio.NewReader(conn)
+		go n.HandleReadStream(n.IncomingConnections[id], id)
+		n.logger.Debug("Incoming TCP Connected from "+strconv.Itoa(id), 3)
+		counter++
+	}
+
 	n.logger.Debug("All incoming connections are established", 3)
 	return nil
 }
