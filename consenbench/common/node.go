@@ -44,10 +44,9 @@ func (n *Node) ExecCmd(cmd string) error {
 	sshCmd := exec.Command("ssh", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
-		n.Logger.Debug(fmt.Sprintf("failed to execute command via SSH, err:%v, output:%vs for node:%v", err, output, n.Id), 0)
-		return fmt.Errorf("failed to execute command via SSH: %w, output: %s", err, output)
+		panic(fmt.Sprintf("failed to execute %v via SSH, err:%v, output:%vs for node:%v", fmt.Sprintf("%v\n", sshCmd), err, output, n.Id))
 	} else {
-		n.Logger.Debug(fmt.Sprintf("Executed command via SSH: %v, output: %v for node: %v", cmd, output, n.Id), 0)
+		n.Logger.Debug(fmt.Sprintf("Executed %v via SSH, output: %v for node: %v", fmt.Sprintf("%v\n", sshCmd), output, n.Id), 0)
 	}
 	return nil
 }
@@ -59,10 +58,9 @@ func (n *Node) Get_Load(remote_location string, local_location string) error {
 	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location), local_location)
 	output, err := scpCmd.CombinedOutput()
 	if err != nil {
-		n.Logger.Debug(fmt.Sprintf("failed to download file via SCP, errpr:%v, output:%v for node:%v", err, output, n.Id), 0)
-		return fmt.Errorf("failed to download file via SCP: %w, output: %s", err, output)
+		panic(fmt.Sprintf("failed to download file via SCP %v, error:%v, output:%v for node:%v", fmt.Sprintf("%v\n", scpCmd), err, output, n.Id))
 	} else {
-		n.Logger.Debug(fmt.Sprintf("Download using SCP successful for node %v", n.Id), 0)
+		n.Logger.Debug(fmt.Sprintf("Download using %v successful for node %v", fmt.Sprintf("%v\n", scpCmd), n.Id), 0)
 	}
 	return nil
 }
@@ -73,10 +71,9 @@ func (n *Node) Put_Load(local_location string, remote_location string) error {
 	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, local_location, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location))
 	output, err := scpCmd.CombinedOutput()
 	if err != nil {
-		n.Logger.Debug(fmt.Sprintf("failed to upload file via SCP, err:%v, output:%s for node:%v", err, output, n.Id), 0)
-		return fmt.Errorf("failed to upload file via SCP: %v, output: %s", err, output)
+		panic(fmt.Sprintf("failed to upload file via %v, err:%v, output:%s for node:%v", fmt.Sprintf("%v\n", scpCmd), err, output, n.Id))
 	} else {
-		n.Logger.Debug(fmt.Sprintf("Upload using SCP successful for node %v", n.Id), 0)
+		n.Logger.Debug(fmt.Sprintf("Upload using %v successful for node %v", fmt.Sprintf("%v\n", scpCmd), n.Id), 0)
 	}
 	return nil
 }
