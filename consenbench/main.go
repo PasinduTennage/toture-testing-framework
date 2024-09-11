@@ -14,6 +14,7 @@ func main() {
 	id := flag.Int("id", 1, "id of the node, according to node ip configuration file")
 	debug_on := flag.Bool("debug_on", false, "turn on debug mode")
 	debug_level := flag.Int("debug_level", 0, "debug level")
+	logFileAbsPath := flag.String("log_file", "", "log file absolute path")
 
 	// controller specific arguments
 	attack_duration := flag.Int("attack_duration", 60, "duration of the attack in seconds")
@@ -30,6 +31,7 @@ func main() {
 			NodeInfoFile:   *node_info_file,
 			DebugOn:        *debug_on,
 			DebugLevel:     *debug_level,
+			LogFileAbsPath: *logFileAbsPath,
 		}
 		controller := controller.NewController(*id, options)
 		if *controller_operation_type == "BootstrapClients" {
@@ -43,9 +45,10 @@ func main() {
 		}
 	} else {
 		options := client.ClientOptions{
-			NodeInfoFile: *node_info_file,
-			DebugOn:      *debug_on,
-			DebugLevel:   *debug_level,
+			NodeInfoFile:   *node_info_file,
+			DebugOn:        *debug_on,
+			DebugLevel:     *debug_level,
+			LogFileAbsPath: *logFileAbsPath,
 		}
 		client := client.NewClient(*id, options)
 		client.Run()

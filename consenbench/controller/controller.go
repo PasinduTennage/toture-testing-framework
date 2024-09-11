@@ -15,6 +15,7 @@ type ControllerOptions struct {
 	NodeInfoFile   string   // the yaml file containing the ip address of each node, controller port, client port
 	DebugOn        bool
 	DebugLevel     int
+	LogFileAbsPath string
 }
 
 // Controller struct
@@ -32,7 +33,7 @@ func NewController(Id int, Options ControllerOptions) *Controller {
 		Id:        Id,
 		InputChan: make(chan *common.RPCPairPeer, 10000),
 		Options:   Options,
-		logger:    util.NewLogger(Options.DebugLevel, Options.DebugOn),
+		logger:    util.NewLogger(Options.DebugLevel, Options.DebugOn, Options.LogFileAbsPath),
 	}
 }
 
