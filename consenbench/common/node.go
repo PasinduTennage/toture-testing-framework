@@ -21,7 +21,7 @@ type Node struct {
 	Ip             string `yaml:"Ip"`
 	Username       string `yaml:"Username"`
 	HomeDir        string `yaml:"HomeDir"`
-	privateKeyPath string `yaml:"privateKeyPath"`
+	PrivateKeyPath string `yaml:"privateKeyPath"`
 	stat           NodeStat
 	statMutex      *sync.Mutex
 	Logger         *util.Logger
@@ -41,7 +41,7 @@ func (n *Node) InitNode(logger *util.Logger) {
 // Execute a command on the node
 
 func (n *Node) ExecCmd(cmd string) error {
-	sshCmd := exec.Command("ssh", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
+	sshCmd := exec.Command("ssh", "-i", n.PrivateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
 		panic(fmt.Sprintf("failed to execute %v via SSH, err:%v, output:%vs for node:%v", fmt.Sprintf("%v\n", sshCmd), err, output, n.Id))
@@ -55,7 +55,7 @@ func (n *Node) ExecCmd(cmd string) error {
 
 func (n *Node) Get_Load(remote_location string, local_location string) error {
 
-	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location), local_location)
+	scpCmd := exec.Command("scp", "-i", n.PrivateKeyPath, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location), local_location)
 	output, err := scpCmd.CombinedOutput()
 	if err != nil {
 		panic(fmt.Sprintf("failed to download file via SCP %v, error:%v, output:%v for node:%v", fmt.Sprintf("%v\n", scpCmd), err, output, n.Id))
@@ -68,7 +68,7 @@ func (n *Node) Get_Load(remote_location string, local_location string) error {
 // upload the file from the local location to the remote location
 
 func (n *Node) Put_Load(local_location string, remote_location string) error {
-	scpCmd := exec.Command("scp", "-i", n.privateKeyPath, local_location, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location))
+	scpCmd := exec.Command("scp", "-i", n.PrivateKeyPath, local_location, fmt.Sprintf("%s@%s:%s", n.Username, n.Ip, remote_location))
 	output, err := scpCmd.CombinedOutput()
 	if err != nil {
 		panic(fmt.Sprintf("failed to upload file via %v, err:%v, output:%s for node:%v", fmt.Sprintf("%v\n", scpCmd), err, output, n.Id))
