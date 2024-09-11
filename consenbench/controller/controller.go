@@ -131,6 +131,9 @@ func (c *Controller) HandleClientMessages() error {
 
 func (c *Controller) InitiliazeNodes() {
 	c.Nodes = common.GetNodes(c.Options.NodeInfoFile)
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].InitNode(c.logger)
+	}
 }
 
 func (c *Controller) CloseClients() {
