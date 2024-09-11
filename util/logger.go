@@ -14,7 +14,6 @@ type Logger struct {
 func NewLogger(level int, debugOn bool, logFile string) *Logger {
 	l := &Logger{Level: level, DebugOn: debugOn}
 	if logFile != "" {
-
 		dir := filepath.Dir(logFile)
 		err := os.MkdirAll(dir, 0755)
 		if err != nil {
@@ -25,6 +24,7 @@ func NewLogger(level int, debugOn bool, logFile string) *Logger {
 			panic("Failed to create log file: " + err.Error())
 		}
 		l.LogFile.WriteString("Log file created\n")
+		l.Debug("created log file", 0)
 	} else {
 		panic("Log file not specified")
 	}
