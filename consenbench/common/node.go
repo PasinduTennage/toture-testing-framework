@@ -88,13 +88,17 @@ func (n *Node) Shut_Down() error {
 // start client
 
 func (n *Node) Start_Client() error {
-	n.ExecCmd(fmt.Sprintf("pkill -f bench"))
+
+	fmt.Printf("Starting client on node: %v\n", n.Id)
+
+	n.ExecCmd("pkill -f bench")
 	// start the client program
 	if n.Logger.DebugOn {
-		return n.ExecCmd(fmt.Sprintf("nohup ./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v &", n.HomeDir, n.Id, n.Logger.Level))
+		go n.ExecCmd(fmt.Sprintf("nohup ./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v &", n.HomeDir, n.Id, n.Logger.Level))
 	} else {
-		return n.ExecCmd(fmt.Sprintf("nohup ./bench/bench --node_config %vbench/ip.yaml --id %v &", n.HomeDir, n.Id))
+		go n.ExecCmd(fmt.Sprintf("nohup ./bench/bench --node_config %vbench/ip.yaml --id %v &", n.HomeDir, n.Id))
 	}
+	return nil
 }
 
 func (n *Node) UpdateStats(perf []float64) {
