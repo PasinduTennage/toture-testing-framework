@@ -10,7 +10,7 @@ func NewLogger(level int, debugOn bool) *Logger {
 }
 
 func (l *Logger) Debug(log string, level int) {
-	if l.Level >= level && l.DebugOn {
+	if level >= l.Level && l.DebugOn {
 		println(log)
 	}
 }
