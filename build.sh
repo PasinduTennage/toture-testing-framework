@@ -1,7 +1,6 @@
 pwd
 sudo apt install -y protobuf-compiler
 /usr/local/go/bin/go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-/usr/local/go/bin/go get -u github.com/golang/protobuf/protoc-gen-go
 /usr/local/go/bin/go get github.com/shirou/gopsutil/v3/...
 /usr/local/go/bin/go get fyne.io/fyne/v2
 /usr/local/go/bin/go mod vendor
