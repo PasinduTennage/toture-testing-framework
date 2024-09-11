@@ -31,7 +31,7 @@ type NetworkConfig struct {
 }
 
 func NewNetwork(Id int, config *NetworkConfig, outChan chan *RPCPairPeer, logger *util.Logger) *Network {
-	return &Network{
+	n := &Network{
 		Id:                  Id,
 		ListenAddress:       config.ListenAddress,
 		RemoteAddresses:     config.RemoteAddresses,
@@ -43,15 +43,21 @@ func NewNetwork(Id int, config *NetworkConfig, outChan chan *RPCPairPeer, logger
 		rpcTable:            make(map[uint8]*RPCPair),
 		messageCodes:        GetRPCCodes(),
 	}
+
+	n.logger.Debug(fmt.Sprintf("network created %v\n", n), 3)
+
+	return n
 }
 
 func (n *Network) RegisterRPC(msgObj Serializable, code uint8) {
 	n.rpcTable[code] = &RPCPair{Code: code, Obj: msgObj}
+	n.logger.Debug("Registered RPC code "+strconv.Itoa(int(code)), 3)
 }
 
 // connect to all remote nodes
 
 func (n *Network) ConnectRemotes() error {
+	n.logger.Debug(fmt.Sprintf("connecting to remotes %v\n", n.RemoteAddresses), 3)
 	for id, address := range n.RemoteAddresses {
 		var b [4]byte
 		bs := b[:4]
@@ -80,6 +86,7 @@ func (n *Network) ConnectRemotes() error {
 // listen to self.ListenAddress until all expected peers are connected
 
 func (n *Network) Listen() error {
+	n.logger.Debug("Listening on "+n.ListenAddress, 3)
 	counter := 0
 	var b [4]byte
 	bs := b[:4]
