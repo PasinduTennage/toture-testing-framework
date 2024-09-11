@@ -52,26 +52,26 @@ func (c *Controller) BootstrapClients() error {
 		c.Nodes[i].Put_Load("consenbench/assets/ip.yaml", fmt.Sprintf("%vbench/", c.Nodes[i].HomeDir))
 	}
 
-	fmt.Print("Copied the client binary to all the nodes")
+	fmt.Println("Copied the client binary to all the nodes")
 
 	// start the client binary
 	for i := 0; i < len(c.Nodes); i++ {
 		c.Nodes[i].Start_Client(c.Options.LogFileAbsPath)
 	}
 	time.Sleep(5 * time.Second)
-	fmt.Print("Started the client binary on all the nodes")
+	fmt.Println("Started the client binary on all the nodes")
 
 	// initiate the tcp connections
 	c.NetworkInit()
-	fmt.Print("Initialized the network layer with all clients")
+	fmt.Println("Initialized the network layer with all clients")
 
 	c.HandleClientMessages()
 
 	// close the clients
 	defer c.CloseClients()
-	fmt.Print("Closed the clients")
+	fmt.Println("Closed the clients")
 
-	fmt.Print("Bootstrapped the clients, exiting")
+	fmt.Println("Bootstrapped the clients, exiting")
 	os.Exit(0)
 	return nil
 

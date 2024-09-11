@@ -34,6 +34,6 @@ func NewLogger(level int, debugOn bool, logFile string) *Logger {
 
 func (l *Logger) Debug(log string, level int) {
 	if level >= l.Level && l.DebugOn {
-		l.LogFile.WriteString(log)
+		l.LogFile.WriteString(log + "\n")
 	}
 }
