@@ -56,7 +56,7 @@ func (c *Controller) BootstrapClients() error {
 
 	// start the client binary
 	for i := 0; i < len(c.Nodes); i++ {
-		c.Nodes[i].Start_Client()
+		c.Nodes[i].Start_Client(c.Options.LogFileAbsPath)
 	}
 	time.Sleep(5 * time.Second)
 	c.logger.Debug("Started the client binary on all the nodes", 0)
