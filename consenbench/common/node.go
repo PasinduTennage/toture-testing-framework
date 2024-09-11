@@ -17,13 +17,13 @@ type NodeStat struct {
 }
 
 type Node struct {
-	Id             int
-	Ip             string
-	Username       string
-	HomeDir        string
+	Id             int    `yaml:"Id"`
+	Ip             string `yaml:"Ip"`
+	Username       string `yaml:"Username"`
+	HomeDir        string `yaml:"HomeDir"`
+	privateKeyPath string `yaml:"privateKeyPath"`
 	stat           NodeStat
 	statMutex      *sync.Mutex
-	privateKeyPath string
 	Logger         *util.Logger
 }
 
@@ -115,7 +115,7 @@ func (n *Node) GetStats() NodeStat {
 }
 
 func GetNodes(filename string) []*Node {
-	print("reading node data from filename: ", filename)
+	print("reading node data from filename: \n", filename)
 	type Nodes struct {
 		Nodes []*Node `yaml:"nodes"`
 	}
