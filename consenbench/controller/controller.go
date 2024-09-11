@@ -45,7 +45,7 @@ func (c *Controller) BootstrapClients() error {
 	// copy the client binary to all the nodes
 	for i := 0; i < len(c.Nodes); i++ {
 		c.Nodes[i].ExecCmd(fmt.Sprintf("pkill -f bench"))
-		c.Nodes[i].ExecCmd(fmt.Sprintf("rm -r %vbench", c.Nodes[i].HomeDir, c.Nodes[i].HomeDir))
+		c.Nodes[i].ExecCmd(fmt.Sprintf("rm -r %vbench", c.Nodes[i].HomeDir))
 		c.Nodes[i].ExecCmd(fmt.Sprintf("mkdir -p %vbench", c.Nodes[i].HomeDir))
 		c.Nodes[i].Put_Load("consenbench/bin/bench", fmt.Sprintf("%vbench/", c.Nodes[i].HomeDir))
 		c.Nodes[i].Put_Load("consenbench/assets/ip.yaml", fmt.Sprintf("%vbench/", c.Nodes[i].HomeDir))
