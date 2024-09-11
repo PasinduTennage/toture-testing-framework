@@ -90,9 +90,9 @@ func (n *Node) Shut_Down() error {
 func (n *Node) Start_Client() error {
 	// start the client program
 	if n.Logger.DebugOn {
-		return n.ExecCmd(fmt.Sprintf("cd %vbench/ && ./bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v", n.HomeDir, n.HomeDir, n.Id, n.Logger.Level))
+		return n.ExecCmd(fmt.Sprintf("pkil -f bench && cd %vbench/ && nohup  ./bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v &", n.HomeDir, n.HomeDir, n.Id, n.Logger.Level))
 	} else {
-		return n.ExecCmd(fmt.Sprintf("cd %vbench/ && ./bench --node_config %vbench/ip.yaml --id %v", n.HomeDir, n.HomeDir, n.Id))
+		return n.ExecCmd(fmt.Sprintf("pkil -f bench && cd %vbench/ && nohup  ./bench --node_config %vbench/ip.yaml --id %v &", n.HomeDir, n.HomeDir, n.Id))
 	}
 }
 
