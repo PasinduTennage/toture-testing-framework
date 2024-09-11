@@ -94,9 +94,9 @@ func (n *Node) Start_Client() error {
 	n.ExecCmd("pkill -f bench")
 	// start the client program
 	if n.Logger.DebugOn {
-		go n.ExecCmd(fmt.Sprintf("nohup ./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v &", n.HomeDir, n.Id, n.Logger.Level))
+		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v", n.HomeDir, n.Id, n.Logger.Level))
 	} else {
-		go n.ExecCmd(fmt.Sprintf("nohup ./bench/bench --node_config %vbench/ip.yaml --id %v &", n.HomeDir, n.Id))
+		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v", n.HomeDir, n.Id))
 	}
 	return nil
 }
