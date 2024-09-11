@@ -89,8 +89,11 @@ func (n *Node) Shut_Down() error {
 
 func (n *Node) Start_Client() error {
 	// start the client program
-	return n.ExecCmd(fmt.Sprintf("cd %vbench/ && ./bench --client --config %vbench/ip.yaml --name %v", n.HomeDir, n.HomeDir, n.Id))
-
+	if n.Logger.DebugOn {
+		return n.ExecCmd(fmt.Sprintf("cd %vbench/ && ./bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v", n.HomeDir, n.HomeDir, n.Id, n.Logger.Level))
+	} else {
+		return n.ExecCmd(fmt.Sprintf("cd %vbench/ && ./bench --node_config %vbench/ip.yaml --id %v", n.HomeDir, n.HomeDir, n.Id))
+	}
 }
 
 func (n *Node) UpdateStats(perf []float64) {
