@@ -10,6 +10,8 @@ import (
 
 type ClientOptions struct {
 	NodeInfoFile string // the yaml file containing the ip address of each node, controller port, client por
+	DebugOn      bool
+	DebugLevel   int
 }
 
 type Client struct {
@@ -21,11 +23,11 @@ type Client struct {
 	ControllerId int
 }
 
-func NewClient(Id int, options ClientOptions, logger *util.Logger) *Client {
+func NewClient(Id int, options ClientOptions) *Client {
 	return &Client{
 		Id:        Id,
 		InputChan: make(chan *common.RPCPairPeer, 10000),
-		logger:    logger,
+		logger:    util.NewLogger(options.DebugLevel, options.DebugOn),
 		Options:   options,
 	}
 }

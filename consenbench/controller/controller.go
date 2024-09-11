@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"time"
 	"toture-test/consenbench/common"
@@ -12,8 +13,8 @@ type ControllerOptions struct {
 	AttackDuration int      // second
 	Attacks        []string // set of attacks to run
 	NodeInfoFile   string   // the yaml file containing the ip address of each node, controller port, client port
-	debugOn        bool
-	debugLevel     int
+	DebugOn        bool
+	DebugLevel     int
 }
 
 // Controller struct
@@ -31,7 +32,7 @@ func NewController(Id int, Options ControllerOptions) *Controller {
 		Id:        Id,
 		InputChan: make(chan *common.RPCPairPeer, 10000),
 		Options:   Options,
-		logger:    util.NewLogger(Options.debugLevel, Options.debugOn),
+		logger:    util.NewLogger(Options.DebugLevel, Options.DebugOn),
 	}
 }
 
@@ -68,6 +69,7 @@ func (c *Controller) BootstrapClients() error {
 	c.logger.Debug("Closed the clients", 0)
 
 	c.logger.Debug("Bootstrapped the clients, exiting", 0)
+	os.Exit(0)
 	return nil
 
 }
@@ -96,14 +98,13 @@ func (c *Controller) NetworkInit() error {
 
 // copy the consensus binary
 
-func (c *Controller) CopyConsensus(protocol string) error {
+func (c *Controller) CopyConsensus(protocol string) {
 	// copy the consensus binary to all the nodes
-	return nil
 }
 
 // run the controller
 
-func (c *Controller) Run(protocol string) error {
+func (c *Controller) Run(protocol string) {
 
 	// start all remote clients using node interface and tcp connect
 
@@ -115,7 +116,6 @@ func (c *Controller) Run(protocol string) error {
 		// collect stats from consensus object and print them
 	}
 
-	return nil
 }
 
 func (c *Controller) HandleClientMessages() error {
