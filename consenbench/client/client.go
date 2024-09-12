@@ -103,7 +103,7 @@ func (c *Client) SendStats() {
 	go func() {
 		for true {
 			// scrape machine stats and send to the controller
-			perf_name := []string{"cpu_usage", "mem_usage", "packetsInRate", "packetsOutRate"}
+			//perf_name := []string{"cpu_usage", "mem_usage", "packetsInRate", "packetsOutRate"}
 
 			cpu := util.GetCPUUsage()
 			mem := util.GetMemoryUsage()
@@ -115,12 +115,13 @@ func (c *Client) SendStats() {
 					Code: common.GetRPCCodes().ControlMsg,
 					Obj: &common.ControlMsg{
 						OperationType: int32(common.GetOperationCodes().Stats),
-						StringArgs:    perf_name,
 						FloatArgs:     perf_stats,
 					},
 				},
 				Peer: c.ControllerId,
 			})
+			time.Sleep(1 * time.Second)
+			c.logger.Debug("Sent stats to controller", 0)
 
 		}
 	}()

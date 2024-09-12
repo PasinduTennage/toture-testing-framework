@@ -10,10 +10,10 @@ import (
 )
 
 type NodeStat struct {
-	cpu_usage   float64
-	mem_usage   float64
-	network_in  float64
-	network_out float64
+	cpu_usage   float32
+	mem_usage   float32
+	network_in  float32
+	network_out float32
 }
 
 type Node struct {
@@ -100,7 +100,7 @@ func (n *Node) Start_Client(logfilepath string) error {
 	return nil
 }
 
-func (n *Node) UpdateStats(perf []float64) {
+func (n *Node) UpdateStats(perf []float32) {
 	n.statMutex.Lock()
 	n.stat.cpu_usage = perf[0]
 	n.stat.mem_usage = perf[1]

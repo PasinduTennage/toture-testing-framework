@@ -125,8 +125,17 @@ func (c *Controller) HandleClientMessages() error {
 	// handle the messages from the clients about machine stats
 	go func() {
 		for true {
-			_ = <-c.InputChan
-			// update the stats of the node
+			msg := <-c.InputChan
+			c.logger.Debug(fmt.Sprintf("received from client %v %v ", msg.Peer, msg.RpcPair), 0)
+			switch msg.RpcPair.Code {
+			case common.GetRPCCodes().ControlMsg:
+				// handle control message
+				ctrlMsg := msg.RpcPair.Obj.(*common.ControlMsg)
+				c.Handle(ctrlMsg, msg.Peer)
+			default:
+				c.logger.Debug("Unknown message type", 0)
+			}
+
 		}
 	}()
 	return nil
