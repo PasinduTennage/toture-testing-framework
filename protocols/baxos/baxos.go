@@ -47,14 +47,14 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 		panic("Not enough nodes to deploy baxos")
 	}
 
-	replica_ips := ""
+	config_inputs := []string{"protocols/baxos/assets/config-generate.py", num_replicas, num_clients}
 	for i := int64(0); i < num_clients_int+num_replicas_int; i++ {
-		replica_ips = replica_ips + " " + nodes[i].Ip
+		config_inputs = append(config_inputs, nodes[i].Ip)
 	}
 
-	fmt.Printf("Replicas and clients will be deployed in: %v\n", replica_ips)
+	fmt.Printf("Running pythong command: %v\n", config_inputs)
 
-	sshCmd := exec.Command("python3", "protocols/baxos/assets/config-generate.py", num_replicas, num_clients, replica_ips)
+	sshCmd := exec.Command("python3", config_inputs...)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
 		ba.logger.Debug("Error while running config-generate.py "+err.Error()+" "+string(output), 3)
