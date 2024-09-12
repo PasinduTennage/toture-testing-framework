@@ -11,6 +11,6 @@ type ConsensusOptions struct {
 
 type Consensus interface {
 	CopyConsensus(nodes []*common.Node) error
-	Bootstrap(nodes []*common.Node) util.Performance
+	Bootstrap(nodes []*common.Node, duration int) util.Performance
 	ExtractOptions(string)
 }

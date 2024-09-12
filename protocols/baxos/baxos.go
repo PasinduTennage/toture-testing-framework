@@ -7,6 +7,8 @@ import (
 	"log"
 	"os/exec"
 	"strconv"
+	"sync"
+	"time"
 	"toture-test/consenbench/common"
 	"toture-test/protocols"
 	"toture-test/util"
@@ -80,7 +82,90 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 	return nil
 }
 
-func (ba *Baxos) Bootstrap(nodes []*common.Node) util.Performance {
+func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int) util.Performance {
+	replica_path := "/bench/replica"
+	ctl_path := "/bench/client"
+
+	num_replicas, err := strconv.ParseInt(ba.options.Option["num_replicas"], 10, 64)
+	if err != nil {
+		panic(err.Error() + " while parsing num_replicas")
+
+	}
+	num_clients, err := strconv.ParseInt(ba.options.Option["num_clients"], 10, 64)
+	if err != nil {
+		panic(err.Error() + " while parsing num_clients")
+	}
+
+	round_trip_time, ok := ba.options.Option["round_trip_time"]
+	if !ok {
+		panic(err.Error() + " while parsing round_trip_time")
+	}
+
+	arrival_rate, ok := ba.options.Option["arrival_rate"]
+	if !ok {
+		panic(err.Error() + " while parsing arrival_rate")
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(int(num_replicas + num_clients))
+	for i := 0; i < int(num_replicas+num_clients); i++ {
+		go func() {
+			nodes[i].ExecCmd("pkill replica")
+			nodes[i].ExecCmd("pkill client")
+			nodes[i].ExecCmd(fmt.Sprintf("rm -r %vbench/logs/", nodes[i].HomeDir))
+			nodes[i].ExecCmd(fmt.Sprintf("mkdir -p %vbench/logs/", nodes[i].HomeDir))
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	fmt.Print("Killed all the replicas and clients\n")
+
+	for i := 0; i < int(num_replicas); i++ {
+		go nodes[i].ExecCmd("./" + replica_path + " --name " + strconv.Itoa(i+1) + " --roundTripTime " + round_trip_time + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir))
+	}
+
+	time.Sleep(15 * time.Second)
+
+	fmt.Print("Started all the replicas\n")
+
+	nodes[num_replicas].ExecCmd("./" + ctl_path + " --name " + strconv.Itoa(50+1) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[num_replicas].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[num_replicas].HomeDir) + " --requestType status --operationType 1 ")
+
+	fmt.Print("Sent initial status to bootstrap\n")
+
+	time.Sleep(20 * time.Second)
+
+	clientOutputs := make([]string, num_clients)
+	k := 1
+	for i := int(num_replicas); i < int(num_replicas+num_clients); i++ {
+
+		go func() {
+			clientOutputs[i-int(num_replicas)] = nodes[i].ExecCmd("./" + ctl_path + " --name " + strconv.Itoa(50+k) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir) + " --requestType request --arrivalRate  " + arrival_rate + " --testDuration " + strconv.Itoa(duration))
+		}()
+		k++
+	}
+
+	fmt.Print("Started all the clients\n")
+
+	time.Sleep(time.Duration(2*duration) * time.Second)
+
+	fmt.Print("Finished the clients\n")
+
+	var wg1 sync.WaitGroup
+	wg1.Add(int(num_replicas + num_clients))
+	for i := 0; i < int(num_replicas+num_clients); i++ {
+		go func() {
+			nodes[i].ExecCmd("pkill replica")
+			nodes[i].ExecCmd("pkill client")
+			wg1.Done()
+		}()
+	}
+	wg1.Wait()
+
+	fmt.Print("Killed all the replicas and clients\n")
+
+	fmt.Printf("Client outputs: %v\n", clientOutputs)
+
 	return util.Performance{}
 }
 
