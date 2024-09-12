@@ -65,7 +65,7 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 		if err != nil {
 			panic("Error while writing to ip_config.yaml " + err.Error())
 		} else {
-			fmt.Printf("ip_config.yaml written successfully with content\n: %v\n", string(output))
+			fmt.Printf("ip_config.yaml written successfully with content:\n %v\n", string(output))
 		}
 	}
 
