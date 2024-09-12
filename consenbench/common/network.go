@@ -66,6 +66,7 @@ func (n *Network) ConnectRemotes() error {
 			conn, err := net.Dial("tcp", address)
 			if err == nil {
 				n.OutgoingConnections[id] = bufio.NewWriter(conn)
+				n.OutMutex[id] = &sync.Mutex{}
 				binary.LittleEndian.PutUint16(bs, uint16(n.Id))
 				_, err := conn.Write(bs)
 				if err != nil {
