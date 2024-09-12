@@ -9,6 +9,10 @@ import (
 type Baxos struct {
 }
 
+func NewBaxos() *Baxos {
+	return &Baxos{}
+}
+
 func (ba *Baxos) CopyConsensus(nodes []*common.Node, options protocols.ConsensusOptions) error {
 	return nil
 }
