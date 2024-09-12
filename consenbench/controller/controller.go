@@ -108,18 +108,26 @@ func (c *Controller) CopyConsensus(protocol string) {
 	var protocol_impl protocols.Consensus
 	if protocol == "baxos" {
 		protocol_impl = consensus.NewBaxos(c.logger)
-		protocol_impl.ExtractOptions("protocols/baxos/assets/options.yaml")
-		protocol_impl.CopyConsensus(c.Nodes)
+	} else {
+		panic("Unknown protocol")
 	}
+	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
+	protocol_impl.CopyConsensus(c.Nodes)
 
 }
 
 // run the controller
 
 func (c *Controller) Run(protocol string) {
-
-	// start all remote clients using node interface and tcp connect
-
+	c.InitiliazeNodes()
+	var protocol_impl protocols.Consensus
+	if protocol == "baxos" {
+		protocol_impl = consensus.NewBaxos(c.logger)
+	} else {
+		panic("Unknown protocol")
+	}
+	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
+	protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration)
 	for i := 0; i < len(c.Options.Attacks); i++ {
 		// bootstrap the consensus protocol
 
