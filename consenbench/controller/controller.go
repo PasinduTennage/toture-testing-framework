@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 	"toture-test/consenbench/common"
+	"toture-test/protocols"
+	consensus "toture-test/protocols/baxos"
 	"toture-test/util"
 )
 
@@ -102,7 +104,14 @@ func (c *Controller) NetworkInit() error {
 // copy the consensus binary
 
 func (c *Controller) CopyConsensus(protocol string) {
-	// copy the consensus binary to all the nodes
+	c.InitiliazeNodes()
+	var protocol_impl protocols.Consensus
+	if protocol == "baxos" {
+		protocol_impl = consensus.NewBaxos(c.logger)
+		protocol_impl.ExtractOptions("protocols/baxos/assets/options.yaml")
+		protocol_impl.CopyConsensus(c.Nodes)
+	}
+
 }
 
 // run the controller
