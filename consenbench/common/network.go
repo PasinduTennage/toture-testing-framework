@@ -188,7 +188,7 @@ func (n *Network) Broadcast(rpc *RPCPair) error {
 			Peer:    id,
 		})
 	}
-	n.logger.Debug("Broadcasted message", 0)
+	n.logger.Debug("Broadcast message", 0)
 	return nil
 }
 
