@@ -40,7 +40,7 @@ func (n *Node) InitNode(logger *util.Logger) {
 
 // Execute a command on the node
 
-func (n *Node) ExecCmd(cmd string) error {
+func (n *Node) ExecCmd(cmd string) string {
 	sshCmd := exec.Command("ssh", "-i", n.PrivateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
@@ -48,7 +48,7 @@ func (n *Node) ExecCmd(cmd string) error {
 	} else {
 		n.Logger.Debug(fmt.Sprintf("SUCCESS %v via SSH, output: %v for node: %v\n\n", fmt.Sprintf("%v", sshCmd), string(output), n.Id), 0)
 	}
-	return nil
+	return string(output)
 }
 
 // download the file from the remote location to the local location
@@ -80,7 +80,7 @@ func (n *Node) Put_Load(local_location string, remote_location string) error {
 
 // shut down the node
 
-func (n *Node) Shut_Down() error {
+func (n *Node) Shut_Down() string {
 	// shut down the node
 	return n.ExecCmd("sudo shutdown -h now")
 }

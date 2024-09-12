@@ -9,15 +9,14 @@ import (
 type Baxos struct {
 }
 
-func (ba *Baxos) Bootstrap(nodes []*common.Node, options protocols.ConsensusOptions) error {
+func (ba *Baxos) CopyConsensus(nodes []*common.Node, options protocols.ConsensusOptions) error {
 	return nil
-	// logic to bootstrap
 }
 
-func (ba *Baxos) Get_Performance_Stats(nodes []*common.Node, performance util.Performance, crashed_nodes []*common.Node, options protocols.ConsensusOptions) util.Performance {
-	return performance // get performance stats from the nodes except the crashed and update the performance object
+func (ba *Baxos) Bootstrap(nodes []*common.Node, options protocols.ConsensusOptions) util.Performance {
+	return util.Performance{}
 }
 
-func (ba *Baxos) ExtractOptions(optionsFile string) protocols.ConsensusOptions {
+func (ba *Baxos) ExtractOptions(string) protocols.ConsensusOptions {
 	return protocols.ConsensusOptions{}
 }

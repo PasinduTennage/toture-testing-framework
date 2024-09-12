@@ -10,7 +10,7 @@ type ConsensusOptions struct {
 }
 
 type Consensus interface {
-	Bootstrap(nodes []*common.Node, options ConsensusOptions) error
-	Get_Performance_Stats(nodes []*common.Node, performance util.Performance, crashed_nodes []*common.Node, options ConsensusOptions) util.Performance
+	CopyConsensus(nodes []*common.Node, options ConsensusOptions) error
+	Bootstrap(nodes []*common.Node, options ConsensusOptions) util.Performance
 	ExtractOptions(string) ConsensusOptions
 }
