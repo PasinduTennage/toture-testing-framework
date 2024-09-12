@@ -67,10 +67,10 @@ func (c *Controller) BootstrapClients() error {
 
 	c.HandleClientMessages()
 
+	time.Sleep(10 * time.Second)
 	// close the clients
 	c.CloseClients()
 	fmt.Println("Closed the clients")
-	time.Sleep(2 * time.Second)
 	fmt.Println("Bootstrapped the clients, exiting")
 	os.Exit(0)
 	return nil
