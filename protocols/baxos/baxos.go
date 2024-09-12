@@ -69,6 +69,14 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 		}
 	}
 
+	// copy the replica binary, client binary and configuration file to the nodes
+	for i := int64(0); i < num_clients_int+num_replicas_int; i++ {
+		nodes[i].Put_Load("protocols/baxos/assets/ip_config.yaml", fmt.Sprintf("%vbench/", nodes[i].HomeDir))
+		nodes[i].Put_Load("protocols/baxos/assets/replica", fmt.Sprintf("%vbench/", nodes[i].HomeDir))
+		nodes[i].Put_Load("protocols/baxos/assets/client", fmt.Sprintf("%vbench/", nodes[i].HomeDir))
+	}
+	fmt.Print("Copied the baxos binaries to all the nodes\n")
+
 	return nil
 }
 
