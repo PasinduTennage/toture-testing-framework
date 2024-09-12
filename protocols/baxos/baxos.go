@@ -43,7 +43,7 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 		panic(err.Error() + " while parsing num_clients")
 	}
 
-	if num_replicas_int+num_clients_int < int64(len(nodes)) {
+	if num_replicas_int+num_clients_int > int64(len(nodes)) {
 		panic("Not enough nodes to deploy baxos")
 	}
 
