@@ -123,7 +123,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 
 	for j := 0; j < int(num_replicas); j++ {
 		go func(i int) {
-			nodes[i].ExecCmd("./" + replica_path + " --name " + strconv.Itoa(i+1) + " --roundTripTime " + round_trip_time + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir))
+			nodes[i].ExecCmd("." + replica_path + " --name " + strconv.Itoa(i+1) + " --roundTripTime " + round_trip_time + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir))
 		}(j)
 	}
 
@@ -131,7 +131,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 
 	fmt.Print("Started all the replicas\n")
 
-	nodes[num_replicas].ExecCmd("./" + ctl_path + " --name " + strconv.Itoa(50+1) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[num_replicas].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[num_replicas].HomeDir) + " --requestType status --operationType 1 ")
+	nodes[num_replicas].ExecCmd("." + ctl_path + " --name " + strconv.Itoa(50+1) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[num_replicas].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[num_replicas].HomeDir) + " --requestType status --operationType 1 ")
 
 	fmt.Print("Sent initial status to bootstrap\n")
 
@@ -141,7 +141,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 	m := 1
 	for j := int(num_replicas); j < int(num_replicas+num_clients); j++ {
 		go func(i int, k int) {
-			clientOutputs[i-int(num_replicas)] = nodes[i].ExecCmd("./" + ctl_path + " --name " + strconv.Itoa(50+k) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir) + " --requestType request --arrivalRate  " + arrival_rate + " --testDuration " + strconv.Itoa(duration))
+			clientOutputs[i-int(num_replicas)] = nodes[i].ExecCmd("." + ctl_path + " --name " + strconv.Itoa(50+k) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir) + " --requestType request --arrivalRate  " + arrival_rate + " --testDuration " + strconv.Itoa(duration))
 		}(j, m)
 		m++
 	}
