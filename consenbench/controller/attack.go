@@ -33,7 +33,7 @@ func (n *AttackNode) Kill() {
 		},
 		Peer: n.Id,
 	})
-	n.logger.Debug(fmt.Sprintf("killed node %v", n.Id), 0)
+	n.logger.Debug(fmt.Sprintf("killed node %v", n.Id), 3)
 }
 
 func (n *AttackNode) Slowdown() {
@@ -47,7 +47,7 @@ func (n *AttackNode) Slowdown() {
 		},
 		Peer: n.Id,
 	})
-	n.logger.Debug(fmt.Sprintf("Slowed node %v", n.Id), 0)
+	n.logger.Debug(fmt.Sprintf("Slowed node %v", n.Id), 3)
 }
 
 func (n *AttackNode) Pause() {
@@ -61,7 +61,7 @@ func (n *AttackNode) Pause() {
 		},
 		Peer: n.Id,
 	})
-	n.logger.Debug(fmt.Sprintf("Paused node %v", n.Id), 0)
+	n.logger.Debug(fmt.Sprintf("Paused node %v", n.Id), 3)
 }
 
 func (n *AttackNode) Continue() {
@@ -75,7 +75,7 @@ func (n *AttackNode) Continue() {
 		},
 		Peer: n.Id,
 	})
-	n.logger.Debug(fmt.Sprintf("Continued node %v", n.Id), 0)
+	n.logger.Debug(fmt.Sprintf("Continued node %v", n.Id), 3)
 }
 
 func (n *AttackNode) SetSkew(ms float32) {
@@ -89,7 +89,7 @@ func (n *AttackNode) SetSkew(ms float32) {
 		},
 		Peer: n.Id,
 	})
-	n.logger.Debug(fmt.Sprintf("Skewed node %v", n.Id), 0)
+	n.logger.Debug(fmt.Sprintf("Skewed node %v", n.Id), 3)
 }
 
 func (n *AttackNode) SetDrift(ms float32) {
@@ -103,7 +103,7 @@ func (n *AttackNode) SetDrift(ms float32) {
 		},
 		Peer: n.Id,
 	})
-	n.logger.Debug(fmt.Sprintf("Drfted node %v", n.Id), 0)
+	n.logger.Debug(fmt.Sprintf("Drfted node %v", n.Id), 3)
 }
 
 type AttackLink struct {
@@ -128,7 +128,7 @@ func (a *AttackLink) SetStatus(on bool) {
 	} else {
 		a.SetLoss(0)
 	}
-	a.logger.Debug(fmt.Sprintf("set status link %v-%v", a.Id_sender, a.Id_reciever), 0)
+	a.logger.Debug(fmt.Sprintf("set status link %v-%v", a.Id_sender, a.Id_reciever), 3)
 }
 
 func (a *AttackLink) SetDelay(ms float32) {
@@ -142,7 +142,7 @@ func (a *AttackLink) SetDelay(ms float32) {
 		},
 		Peer: a.Id_sender,
 	})
-	a.logger.Debug(fmt.Sprintf("set delay link %v-%v", a.Id_sender, a.Id_reciever), 0)
+	a.logger.Debug(fmt.Sprintf("set delay link %v-%v", a.Id_sender, a.Id_reciever), 3)
 }
 
 func (a *AttackLink) SetLoss(l float32) {
@@ -156,7 +156,7 @@ func (a *AttackLink) SetLoss(l float32) {
 		},
 		Peer: a.Id_sender,
 	})
-	a.logger.Debug(fmt.Sprintf("set loss link %v-%v", a.Id_sender, a.Id_reciever), 0)
+	a.logger.Debug(fmt.Sprintf("set loss link %v-%v", a.Id_sender, a.Id_reciever), 3)
 }
 
 func (a *AttackLink) SetBandwidth(b float32) {
@@ -170,7 +170,7 @@ func (a *AttackLink) SetBandwidth(b float32) {
 		},
 		Peer: a.Id_sender,
 	})
-	a.logger.Debug(fmt.Sprintf("set bandwidth link %v-%v", a.Id_sender, a.Id_reciever), 0)
+	a.logger.Debug(fmt.Sprintf("set bandwidth link %v-%v", a.Id_sender, a.Id_reciever), 3)
 
 }
 
@@ -216,7 +216,7 @@ func (l *LeaderOracle) GetLeader() int {
 		panic("No leader found")
 	}
 
-	l.logger.Debug(fmt.Sprintf("Leader is %v", leader.Id), 0)
+	l.logger.Debug(fmt.Sprintf("Leader is %v", leader.Id), 3)
 
 	return leader.Id
 }
