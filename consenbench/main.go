@@ -19,7 +19,7 @@ func main() {
 	// controller specific arguments
 	attack_duration := flag.Int("attack_duration", 60, "duration of the attack in seconds")
 	attacks := flag.String("attacks", "all", "set of attacks to run, seperated by commas without spaces")
-	controller_operation_type := flag.String("controller_operation_type", "", "operation type of the controller: BootstrapClients/CopyConsensus/Run")
+	controller_operation_type := flag.String("controller_operation_type", "", "operation type of the controller: bootstrap/copy/run")
 	consensus_algorithm := flag.String("consensus_algorithm", "raft", "consensus algorithm to run")
 
 	flag.Parse()
@@ -34,11 +34,11 @@ func main() {
 			LogFileAbsPath: *logFileAbsPath,
 		}
 		controller := controller.NewController(*id, options)
-		if *controller_operation_type == "BootstrapClients" {
+		if *controller_operation_type == "bootstrap" {
 			controller.BootstrapClients()
-		} else if *controller_operation_type == "CopyConsensus" {
+		} else if *controller_operation_type == "copy" {
 			controller.CopyConsensus(*consensus_algorithm)
-		} else if *controller_operation_type == "Run" {
+		} else if *controller_operation_type == "run" {
 			controller.Run(*consensus_algorithm)
 		} else {
 			panic("invalid controller operation type")
