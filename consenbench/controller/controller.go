@@ -120,6 +120,20 @@ func (c *Controller) CopyConsensus(protocol string) {
 
 func (c *Controller) Run(protocol string) {
 	c.InitiliazeNodes()
+	// start the client binary
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].Start_Client(c.Options.LogFileAbsPath)
+	}
+	time.Sleep(5 * time.Second)
+	fmt.Println("Started the client binary on all the nodes")
+
+	// initiate the tcp connections
+	c.NetworkInit()
+	fmt.Println("Initialized the network layer with all clients")
+
+	c.HandleClientMessages()
+	time.Sleep(10 * time.Second)
+
 	var protocol_impl protocols.Consensus
 	if protocol == "baxos" {
 		protocol_impl = consensus.NewBaxos(c.logger)
@@ -129,12 +143,14 @@ func (c *Controller) Run(protocol string) {
 	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
 	bootstrap_complete := make(chan bool)
 	performance_output := make(chan util.Performance)
-	protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete)
+	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete)
 	<-bootstrap_complete // wait for the bootstrap to complete
-	c.logger.Debug("Bootstrap complete", 0)
-	time.Sleep(time.Duration(2*c.Options.AttackDuration+5) * time.Second)
+	c.logger.Debug("Bootstrap complete, starting attack from controller", 0)
 	<-performance_output
 	c.logger.Debug("Attack complete", 0)
+	c.CloseClients()
+	fmt.Println("Closed the clients")
+	fmt.Println("test complete")
 
 }
 
