@@ -146,11 +146,6 @@ func GetNodes(filename string) []*Node {
 	}
 
 	client_nodes := nodes.Nodes[1:]
-	// print the nodes
-	print("Nodes: \n")
-	for i := 0; i < len(client_nodes); i++ {
-		fmt.Printf("Node: %v\n", client_nodes[i])
-	}
 	return client_nodes
 
 }
@@ -171,8 +166,5 @@ func GetController(filename string) *Node {
 	}
 
 	controller := nodes.Nodes[0]
-	// print the controller
-
-	fmt.Printf("Controller: %v\n", controller)
 	return controller
 }
