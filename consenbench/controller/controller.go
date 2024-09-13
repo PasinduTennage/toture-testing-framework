@@ -127,14 +127,14 @@ func (c *Controller) Run(protocol string) {
 		panic("Unknown protocol")
 	}
 	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
-	protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration)
-	for i := 0; i < len(c.Options.Attacks); i++ {
-		// bootstrap the consensus protocol
-
-		// instantiate the node and link objects and start the attack, only instantiate for the attack_nodes that are running replicas, use the consensus options object
-
-		// collect stats from consensus object and print them
-	}
+	bootstrap_complete := make(chan bool)
+	performance_output := make(chan util.Performance)
+	protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete)
+	<-bootstrap_complete // wait for the bootstrap to complete
+	c.logger.Debug("Bootstrap complete", 0)
+	time.Sleep(time.Duration(2*c.Options.AttackDuration+5) * time.Second)
+	<-performance_output
+	c.logger.Debug("Attack complete", 0)
 
 }
 

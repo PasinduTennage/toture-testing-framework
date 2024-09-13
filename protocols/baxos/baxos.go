@@ -82,7 +82,7 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 	return nil
 }
 
-func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int) util.Performance {
+func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool) {
 	replica_path := "/bench/replica"
 	ctl_path := "/bench/client"
 
@@ -109,20 +109,22 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int) util.Performance 
 	var wg sync.WaitGroup
 	wg.Add(int(num_replicas + num_clients))
 	for i := 0; i < int(num_replicas+num_clients); i++ {
-		go func() {
-			nodes[i].ExecCmd("pkill replica")
-			nodes[i].ExecCmd("pkill client")
-			nodes[i].ExecCmd(fmt.Sprintf("rm -r %vbench/logs/", nodes[i].HomeDir))
-			nodes[i].ExecCmd(fmt.Sprintf("mkdir -p %vbench/logs/", nodes[i].HomeDir))
+		go func(j int) {
+			nodes[j].ExecCmd("pkill replica")
+			nodes[j].ExecCmd("pkill client")
+			nodes[j].ExecCmd(fmt.Sprintf("rm -r %vbench/logs/", nodes[j].HomeDir))
+			nodes[j].ExecCmd(fmt.Sprintf("mkdir -p %vbench/logs/", nodes[j].HomeDir))
 			wg.Done()
-		}()
+		}(i)
 	}
 	wg.Wait()
 
 	fmt.Print("Killed all the replicas and clients\n")
 
-	for i := 0; i < int(num_replicas); i++ {
-		go nodes[i].ExecCmd("./" + replica_path + " --name " + strconv.Itoa(i+1) + " --roundTripTime " + round_trip_time + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir))
+	for j := 0; j < int(num_replicas); j++ {
+		go func(i int) {
+			nodes[i].ExecCmd("./" + replica_path + " --name " + strconv.Itoa(i+1) + " --roundTripTime " + round_trip_time + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir))
+		}(j)
 	}
 
 	time.Sleep(15 * time.Second)
@@ -136,16 +138,20 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int) util.Performance 
 	time.Sleep(20 * time.Second)
 
 	clientOutputs := make([]string, num_clients)
-	k := 1
-	for i := int(num_replicas); i < int(num_replicas+num_clients); i++ {
-
-		go func() {
+	m := 1
+	for j := int(num_replicas); j < int(num_replicas+num_clients); j++ {
+		go func(i int, k int) {
 			clientOutputs[i-int(num_replicas)] = nodes[i].ExecCmd("./" + ctl_path + " --name " + strconv.Itoa(50+k) + " --logFilePath " + fmt.Sprintf("%vbench/logs/", nodes[i].HomeDir) + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[i].HomeDir) + " --requestType request --arrivalRate  " + arrival_rate + " --testDuration " + strconv.Itoa(duration))
-		}()
-		k++
+		}(j, m)
+		m++
 	}
 
 	fmt.Print("Started all the clients\n")
+
+	time.Sleep(6 * time.Second)
+
+	fmt.Print("Bootstrap complete\n")
+	bootstrap_complete <- true
 
 	time.Sleep(time.Duration(2*duration) * time.Second)
 
@@ -153,12 +159,12 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int) util.Performance 
 
 	var wg1 sync.WaitGroup
 	wg1.Add(int(num_replicas + num_clients))
-	for i := 0; i < int(num_replicas+num_clients); i++ {
-		go func() {
+	for j := 0; j < int(num_replicas+num_clients); j++ {
+		go func(i int) {
 			nodes[i].ExecCmd("pkill replica")
 			nodes[i].ExecCmd("pkill client")
 			wg1.Done()
-		}()
+		}(j)
 	}
 	wg1.Wait()
 
@@ -166,7 +172,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int) util.Performance 
 
 	fmt.Printf("Client outputs: %v\n", clientOutputs)
 
-	return util.Performance{}
+	result <- util.Performance{} //TODO
 }
 
 func (ba *Baxos) ExtractOptions(path string) {
