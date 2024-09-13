@@ -109,16 +109,24 @@ func (n *Node) UpdateStats(perf []float32) {
 	n.statMutex.Unlock()
 }
 
-func (n *Node) GetStats() NodeStat {
+func (n *Node) GetStats() ([]float32, []float32, []float32, []float32) {
 	n.statMutex.Lock()
 	stats := NodeStat{
-		cpu_usage:   n.stat.cpu_usage,
-		mem_usage:   n.stat.mem_usage,
-		network_in:  n.stat.network_in,
-		network_out: n.stat.network_out,
+		cpu_usage:   GetNewArr(n.stat.cpu_usage),
+		mem_usage:   GetNewArr(n.stat.mem_usage),
+		network_in:  GetNewArr(n.stat.network_in),
+		network_out: GetNewArr(n.stat.network_out),
 	}
 	n.statMutex.Unlock()
-	return stats
+	return stats.cpu_usage, stats.mem_usage, stats.network_in, stats.network_out
+}
+
+func GetNewArr(usage []float32) []float32 {
+	newArr := make([]float32, len(usage))
+	for i := 0; i < len(usage); i++ {
+		newArr[i] = usage[i]
+	}
+	return newArr
 }
 
 func GetNodes(filename string) []*Node {

@@ -49,8 +49,17 @@ func GetRPCCodes() MessageCode {
 */
 
 type OperationCodes struct {
-	ShutDown int
-	Stats    int
+	ShutDown     int
+	Stats        int
+	Kill         int
+	Slowdown     int
+	Pause        int
+	Continue     int
+	SetSkew      int
+	SetDrift     int
+	SetDelay     int
+	SetLoss      int
+	SetBandwidth int
 }
 
 /*
@@ -59,8 +68,17 @@ type OperationCodes struct {
 
 func GetOperationCodes() OperationCodes {
 	return OperationCodes{
-		ShutDown: 1,
-		Stats:    2,
+		ShutDown:     1,
+		Stats:        2,
+		Kill:         3,
+		Slowdown:     4,
+		Pause:        5,
+		Continue:     6,
+		SetSkew:      7,
+		SetDrift:     8,
+		SetDelay:     9,
+		SetLoss:      10,
+		SetBandwidth: 11,
 	}
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"strings"
 	"toture-test/consenbench/client"
 	"toture-test/consenbench/controller"
 )
@@ -18,7 +17,7 @@ func main() {
 
 	// controller specific arguments
 	attack_duration := flag.Int("attack_duration", 60, "duration of the attack in seconds")
-	attacks := flag.String("attacks", "all", "set of attacks to run, seperated by commas without spaces")
+	attack := flag.String("attack", "", "attack name to run")
 	controller_operation_type := flag.String("controller_operation_type", "", "operation type of the controller: bootstrap/copy/run")
 	consensus_algorithm := flag.String("consensus_algorithm", "raft", "consensus algorithm to run")
 
@@ -27,7 +26,7 @@ func main() {
 	if *is_controller {
 		options := controller.ControllerOptions{
 			AttackDuration: *attack_duration,
-			Attacks:        strings.Split(*attacks, ","),
+			Attack:         *attack,
 			NodeInfoFile:   *node_info_file,
 			DebugOn:        *debug_on,
 			DebugLevel:     *debug_level,

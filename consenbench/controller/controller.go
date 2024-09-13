@@ -12,9 +12,9 @@ import (
 )
 
 type ControllerOptions struct {
-	AttackDuration int      // second
-	Attacks        []string // set of attacks to run
-	NodeInfoFile   string   // the yaml file containing the ip address of each node, controller port, client port
+	AttackDuration int    // second
+	Attack         string // set of attacks to run
+	NodeInfoFile   string // the yaml file containing the ip address of each node, controller port, client port
 	DebugOn        bool
 	DebugLevel     int
 	LogFileAbsPath string
@@ -141,14 +141,31 @@ func (c *Controller) Run(protocol string) {
 		panic("Unknown protocol")
 	}
 	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
-	bootstrap_complete := make(chan bool)
-	performance_output := make(chan util.Performance)
+
+	bootstrap_complete_chan := make(chan bool)
+	performance_output_chan := make(chan util.Performance)
 	num_replicas_chan := make(chan int)
-	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete, num_replicas_chan)
+	process_name_chan := make(chan string)
+
+	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output_chan, bootstrap_complete_chan, num_replicas_chan, process_name_chan)
+
 	num_replicas := <-num_replicas_chan
-	<-bootstrap_complete // wait for the bootstrap to complete
+	process_name := <-process_name_chan
+
+	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c)
+	var attack_impl Attack
+	if c.Options.Attack == "basic" {
+		attack_impl = NewBasicAttack()
+	} else {
+		panic("Unknown attack")
+
+	}
+
+	<-bootstrap_complete_chan // wait for the bootstrap to complete
 	fmt.Print("Bootstrap complete, starting attack from controller\n")
-	<-performance_output
+
+	attack_impl.Attack(attackNodes, attackLinks, leaderOracle, c.Options.AttackDuration)
+	<-performance_output_chan
 	fmt.Print("Attack complete\n")
 	c.CloseClients()
 	fmt.Println("Closed the clients")
