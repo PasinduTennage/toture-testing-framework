@@ -10,10 +10,10 @@ import (
 )
 
 type NodeStat struct {
-	cpu_usage   float32
-	mem_usage   float32
-	network_in  float32
-	network_out float32
+	cpu_usage   []float32
+	mem_usage   []float32
+	network_in  []float32
+	network_out []float32
 }
 
 type Node struct {
@@ -29,10 +29,10 @@ type Node struct {
 
 func (n *Node) InitNode(logger *util.Logger) {
 	n.stat = NodeStat{
-		cpu_usage:   0.0,
-		mem_usage:   0.0,
-		network_in:  0.0,
-		network_out: 0.0,
+		cpu_usage:   make([]float32, 0),
+		mem_usage:   make([]float32, 0),
+		network_in:  make([]float32, 0),
+		network_out: make([]float32, 0),
 	}
 	n.statMutex = &sync.Mutex{}
 	n.Logger = logger
@@ -102,10 +102,10 @@ func (n *Node) Start_Client(logfilepath string) error {
 
 func (n *Node) UpdateStats(perf []float32) {
 	n.statMutex.Lock()
-	n.stat.cpu_usage = perf[0]
-	n.stat.mem_usage = perf[1]
-	n.stat.network_in = perf[2]
-	n.stat.network_out = perf[3]
+	n.stat.cpu_usage = append(n.stat.cpu_usage, perf[0])
+	n.stat.mem_usage = append(n.stat.mem_usage, perf[1])
+	n.stat.network_in = append(n.stat.network_in, perf[2])
+	n.stat.network_out = append(n.stat.network_out, perf[3])
 	n.statMutex.Unlock()
 }
 
