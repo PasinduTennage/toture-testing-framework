@@ -1,8 +1,11 @@
-# toture-testing-consensus
+# Torture-testing-consensus
 
-This repository implements a tool to test the consensus algorithms.
+This repository implements a networked tool to test the robustness of consensus algorithms.
 
-The tool can be used to test the consensus algorithm under different fault conditions.
+## Precautions
+
+This project is currently in its <span style="color:red">early development stage</span> and is <span style="color:red">not yet ready for production use</span>.
+
 
 ## Requirements
 
@@ -14,8 +17,4 @@ The tool can be used to test the consensus algorithm under different fault condi
 ```sudo apt install -y protobuf-compiler```
 
 
-## Precautions
 
-Run this program in a VM, to avoid any problem in your host machine
-
-This project is currently in the primary stage and under huge development, and is ""not"" ready for production use.
