@@ -1,20 +1,24 @@
 package controller
 
 import (
+	"fmt"
 	"toture-test/consenbench/common"
+	"toture-test/util"
 )
 
 type AttackNode struct {
 	Id           int
 	Controller   *Controller
 	Process_name string
+	logger       *util.Logger
 }
 
-func NewAttackNode(id int, controller *Controller, name string) *AttackNode {
+func NewAttackNode(id int, controller *Controller, name string, logger *util.Logger) *AttackNode {
 	return &AttackNode{
 		Id:           id,
 		Controller:   controller,
 		Process_name: name,
+		logger:       logger,
 	}
 }
 
@@ -29,6 +33,7 @@ func (n *AttackNode) Kill() {
 		},
 		Peer: n.Id,
 	})
+	n.logger.Debug(fmt.Sprintf("killed node %v", n.Id), 0)
 }
 
 func (n *AttackNode) Slowdown() {
@@ -42,6 +47,7 @@ func (n *AttackNode) Slowdown() {
 		},
 		Peer: n.Id,
 	})
+	n.logger.Debug(fmt.Sprintf("Slowed node %v", n.Id), 0)
 }
 
 func (n *AttackNode) Pause() {
@@ -55,6 +61,7 @@ func (n *AttackNode) Pause() {
 		},
 		Peer: n.Id,
 	})
+	n.logger.Debug(fmt.Sprintf("Paused node %v", n.Id), 0)
 }
 
 func (n *AttackNode) Continue() {
@@ -68,6 +75,7 @@ func (n *AttackNode) Continue() {
 		},
 		Peer: n.Id,
 	})
+	n.logger.Debug(fmt.Sprintf("Continued node %v", n.Id), 0)
 }
 
 func (n *AttackNode) SetSkew(ms float32) {
@@ -81,6 +89,7 @@ func (n *AttackNode) SetSkew(ms float32) {
 		},
 		Peer: n.Id,
 	})
+	n.logger.Debug(fmt.Sprintf("Skewed node %v", n.Id), 0)
 }
 
 func (n *AttackNode) SetDrift(ms float32) {
@@ -94,19 +103,22 @@ func (n *AttackNode) SetDrift(ms float32) {
 		},
 		Peer: n.Id,
 	})
+	n.logger.Debug(fmt.Sprintf("Drfted node %v", n.Id), 0)
 }
 
 type AttackLink struct {
 	Id_sender   int
 	Id_reciever int
 	Controller  *Controller
+	logger      *util.Logger
 }
 
-func NewAttackLink(sender int, reciever int, controller *Controller) *AttackLink {
+func NewAttackLink(sender int, reciever int, controller *Controller, logger *util.Logger) *AttackLink {
 	return &AttackLink{
 		Id_sender:   sender,
 		Id_reciever: reciever,
 		Controller:  controller,
+		logger:      logger,
 	}
 }
 
@@ -116,6 +128,7 @@ func (a *AttackLink) SetStatus(on bool) {
 	} else {
 		a.SetLoss(0)
 	}
+	a.logger.Debug(fmt.Sprintf("set status link %v-%v", a.Id_sender, a.Id_reciever), 0)
 }
 
 func (a *AttackLink) SetDelay(ms float32) {
@@ -129,6 +142,7 @@ func (a *AttackLink) SetDelay(ms float32) {
 		},
 		Peer: a.Id_sender,
 	})
+	a.logger.Debug(fmt.Sprintf("set delay link %v-%v", a.Id_sender, a.Id_reciever), 0)
 }
 
 func (a *AttackLink) SetLoss(l float32) {
@@ -142,6 +156,7 @@ func (a *AttackLink) SetLoss(l float32) {
 		},
 		Peer: a.Id_sender,
 	})
+	a.logger.Debug(fmt.Sprintf("set loss link %v-%v", a.Id_sender, a.Id_reciever), 0)
 }
 
 func (a *AttackLink) SetBandwidth(b float32) {
@@ -155,16 +170,19 @@ func (a *AttackLink) SetBandwidth(b float32) {
 		},
 		Peer: a.Id_sender,
 	})
+	a.logger.Debug(fmt.Sprintf("set bandwidth link %v-%v", a.Id_sender, a.Id_reciever), 0)
 
 }
 
 type LeaderOracle struct {
-	nodes []*common.Node
+	nodes  []*common.Node
+	logger *util.Logger
 }
 
-func NewLeaderOracle(nodes []*common.Node) *LeaderOracle {
+func NewLeaderOracle(nodes []*common.Node, logger *util.Logger) *LeaderOracle {
 	return &LeaderOracle{
-		nodes: nodes,
+		nodes:  nodes,
+		logger: logger,
 	}
 }
 
@@ -197,6 +215,9 @@ func (l *LeaderOracle) GetLeader() int {
 	if leader == nil {
 		panic("No leader found")
 	}
+
+	l.logger.Debug(fmt.Sprintf("Leader is %v", leader.Id), 0)
+
 	return leader.Id
 }
 
@@ -215,17 +236,17 @@ func sum(slice []float32) float32 {
 	return total
 }
 
-func GetAttackObjects(num_replicas int, replica_name string, nodes []*common.Node, controller *Controller) ([]*AttackNode, [][]*AttackLink, *LeaderOracle) {
+func GetAttackObjects(num_replicas int, replica_name string, nodes []*common.Node, controller *Controller, logger *util.Logger) ([]*AttackNode, [][]*AttackLink, *LeaderOracle) {
 	attackNodes := make([]*AttackNode, num_replicas)
 	attackLinks := make([][]*AttackLink, num_replicas)
-	leaderOracle := NewLeaderOracle(nodes[0:num_replicas])
+	leaderOracle := NewLeaderOracle(nodes[0:num_replicas], logger)
 
 	for i := 0; i < num_replicas; i++ {
-		attackNodes[i] = NewAttackNode(nodes[i].Id, controller, replica_name)
+		attackNodes[i] = NewAttackNode(nodes[i].Id, controller, replica_name, logger)
 		attackLinks[i] = make([]*AttackLink, num_replicas)
 		for j := 0; j < num_replicas; j++ {
 			if i != j {
-				attackLinks[i][j] = NewAttackLink(nodes[i].Id, nodes[j].Id, controller)
+				attackLinks[i][j] = NewAttackLink(nodes[i].Id, nodes[j].Id, controller, logger)
 			}
 		}
 	}

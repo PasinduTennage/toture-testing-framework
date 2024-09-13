@@ -152,10 +152,10 @@ func (c *Controller) Run(protocol string) {
 	num_replicas := <-num_replicas_chan
 	process_name := <-process_name_chan
 
-	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c)
+	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c, c.logger)
 	var attack_impl Attack
 	if c.Options.Attack == "basic" {
-		attack_impl = NewBasicAttack()
+		attack_impl = NewBasicAttack(c.logger)
 	} else {
 		panic("Unknown attack")
 

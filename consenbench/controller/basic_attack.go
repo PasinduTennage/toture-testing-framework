@@ -3,13 +3,17 @@ package controller
 import (
 	"fmt"
 	"time"
+	"toture-test/util"
 )
 
 type BasicAttack struct {
+	logger *util.Logger
 }
 
-func NewBasicAttack() *BasicAttack {
-	return &BasicAttack{}
+func NewBasicAttack(logger *util.Logger) *BasicAttack {
+	return &BasicAttack{
+		logger: logger,
+	}
 }
 
 func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle *LeaderOracle, duration int) {
