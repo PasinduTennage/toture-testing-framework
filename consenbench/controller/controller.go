@@ -145,9 +145,9 @@ func (c *Controller) Run(protocol string) {
 	performance_output := make(chan util.Performance)
 	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete)
 	<-bootstrap_complete // wait for the bootstrap to complete
-	c.logger.Debug("Bootstrap complete, starting attack from controller", 0)
+	fmt.Print("Bootstrap complete, starting attack from controller\n")
 	<-performance_output
-	c.logger.Debug("Attack complete", 0)
+	fmt.Print("Attack complete\n")
 	c.CloseClients()
 	fmt.Println("Closed the clients")
 	fmt.Println("test complete")
