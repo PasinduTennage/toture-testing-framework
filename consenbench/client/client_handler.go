@@ -9,35 +9,25 @@ func (c *Client) Handle(msg *common.ControlMsg) {
 	if int(msg.OperationType) == common.GetOperationCodes().ShutDown {
 		c.logger.Debug("Received ShutDown signal from controller", 0)
 		os.Exit(0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().Stats {
+	} else if int(msg.OperationType) == common.GetOperationCodes().Stats {
 		panic("Received Stats signal from controller")
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().Kill {
+	} else if int(msg.OperationType) == common.GetOperationCodes().Kill {
 		c.logger.Debug("Received Kill signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().Slowdown {
+	} else if int(msg.OperationType) == common.GetOperationCodes().Slowdown {
 		c.logger.Debug("Received Slowdown signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().Pause {
+	} else if int(msg.OperationType) == common.GetOperationCodes().Pause {
 		c.logger.Debug("Received Pause signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().Continue {
+	} else if int(msg.OperationType) == common.GetOperationCodes().Continue {
 		c.logger.Debug("Received Continue signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().SetSkew {
+	} else if int(msg.OperationType) == common.GetOperationCodes().SetSkew {
 		c.logger.Debug("Received SetSkew signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().SetDrift {
+	} else if int(msg.OperationType) == common.GetOperationCodes().SetDrift {
 		c.logger.Debug("Received SetDrift signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().SetDelay {
+	} else if int(msg.OperationType) == common.GetOperationCodes().SetDelay {
 		c.logger.Debug("Received SetDelay signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().SetLoss {
+	} else if int(msg.OperationType) == common.GetOperationCodes().SetLoss {
 		c.logger.Debug("Received SetLoss signal from controller", 0)
-	}
-	if int(msg.OperationType) == common.GetOperationCodes().SetBandwidth {
+	} else if int(msg.OperationType) == common.GetOperationCodes().SetBandwidth {
 		c.logger.Debug("Received SetBandwidth signal from controller", 0)
 	} else {
 		panic("Unknown operation type")
