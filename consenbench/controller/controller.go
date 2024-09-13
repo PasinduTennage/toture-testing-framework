@@ -143,7 +143,9 @@ func (c *Controller) Run(protocol string) {
 	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
 	bootstrap_complete := make(chan bool)
 	performance_output := make(chan util.Performance)
-	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete)
+	num_replicas_chan := make(chan int)
+	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output, bootstrap_complete, num_replicas_chan)
+	num_replicas := <-num_replicas_chan
 	<-bootstrap_complete // wait for the bootstrap to complete
 	fmt.Print("Bootstrap complete, starting attack from controller\n")
 	<-performance_output

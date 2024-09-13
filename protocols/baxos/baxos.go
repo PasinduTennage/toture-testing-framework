@@ -82,7 +82,7 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 	return nil
 }
 
-func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool) {
+func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool, num_replicas_chan chan int) {
 	replica_path := "/bench/replica"
 	ctl_path := "/bench/client"
 
@@ -120,6 +120,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 	wg.Wait()
 
 	fmt.Print("Killed all the replicas and clients\n")
+	num_replicas_chan <- int(num_replicas)
 
 	for j := 0; j < int(num_replicas); j++ {
 		go func(i int) {
