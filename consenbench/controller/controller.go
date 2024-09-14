@@ -73,7 +73,8 @@ func (c *Controller) BootstrapClients() error {
 	// close the clients
 	c.CloseClients()
 	fmt.Println("Closed the clients")
-	fmt.Println("Bootstrapped the clients, exiting")
+	c.DownloadClientLogs()
+	fmt.Println("Downloaded the logs from the clients")
 	os.Exit(0)
 	return nil
 
@@ -169,8 +170,9 @@ func (c *Controller) Run(protocol string) {
 	fmt.Print("Attack complete\n")
 	c.CloseClients()
 	fmt.Println("Closed the clients")
+	c.DownloadClientLogs()
+	fmt.Println("Downloaded the logs from the clients")
 	fmt.Println("test complete")
-
 }
 
 func (c *Controller) HandleClientMessages() error {
@@ -207,4 +209,10 @@ func (c *Controller) CloseClients() {
 			OperationType: int32(common.GetOperationCodes().ShutDown),
 		},
 	})
+}
+
+func (c *Controller) DownloadClientLogs() {
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].Get_Load(c.Nodes[i].HomeDir+"bench/log.log", fmt.Sprintf("bench/%v.log", c.Nodes[i].Id))
+	}
 }
