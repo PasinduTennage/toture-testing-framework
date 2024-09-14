@@ -17,7 +17,7 @@ type ControllerOptions struct {
 	NodeInfoFile   string // the yaml file containing the ip address of each node, controller port, client port
 	DebugOn        bool
 	DebugLevel     int
-	LogFileAbsPath string
+	LogFilePath    string
 }
 
 // Controller struct
@@ -35,7 +35,7 @@ func NewController(Id int, Options ControllerOptions) *Controller {
 		Id:        Id,
 		InputChan: make(chan *common.RPCPairPeer, 10000),
 		Options:   Options,
-		logger:    util.NewLogger(Options.DebugLevel, Options.DebugOn, Options.LogFileAbsPath),
+		logger:    util.NewLogger(Options.DebugLevel, Options.DebugOn, Options.LogFilePath),
 	}
 }
 
@@ -58,7 +58,7 @@ func (c *Controller) BootstrapClients() error {
 
 	// start the client binary
 	for i := 0; i < len(c.Nodes); i++ {
-		c.Nodes[i].Start_Client(c.Options.LogFileAbsPath)
+		c.Nodes[i].Start_Client(c.Options.LogFilePath)
 	}
 	time.Sleep(5 * time.Second)
 	fmt.Println("Started the client binary on all the nodes")

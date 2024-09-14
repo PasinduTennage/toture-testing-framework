@@ -11,23 +11,20 @@ type Logger struct {
 	LogFile *os.File
 }
 
-func NewLogger(level int, debugOn bool, logFile string) *Logger {
+func NewLogger(level int, debugOn bool, logFilePath string) *Logger {
 	l := &Logger{Level: level, DebugOn: debugOn}
-	if logFile != "" {
-		dir := filepath.Dir(logFile)
-		err := os.MkdirAll(dir, 0755)
-		if err != nil {
-			panic("Failed to create log directory: " + err.Error())
-		}
-		l.LogFile, err = os.Create(logFile)
-		if err != nil {
-			panic("Failed to create log file: " + err.Error())
-		}
-		l.LogFile.WriteString("Log file created\n")
-		l.Debug("created log file", 0)
-	} else {
-		panic("Log file not specified")
+	dir := filepath.Dir(logFilePath)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		panic("Failed to create log directory: " + err.Error())
 	}
+	l.LogFile, err = os.Create(logFilePath + "log.log")
+	if err != nil {
+		panic("Failed to create log file: " + err.Error())
+	}
+	l.LogFile.WriteString("Log file created\n")
+	l.Debug("created log file", 0)
+
 	return l
 
 }
