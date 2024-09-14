@@ -13,7 +13,7 @@ func main() {
 	id := flag.Int("id", 1, "id of the node, according to node ip configuration file")
 	debug_on := flag.Bool("debug_on", false, "turn on debug mode")
 	debug_level := flag.Int("debug_level", 0, "debug level")
-	logFilePath := flag.String("log_file_path", "~/bench/", "log file path")
+	logFilePath := flag.String("log_file_path", "bench/", "log file path")
 
 	// controller specific arguments
 	attack_duration := flag.Int("attack_duration", 60, "duration of the attack in seconds")
