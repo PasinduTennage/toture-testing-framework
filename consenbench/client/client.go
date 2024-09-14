@@ -13,6 +13,23 @@ type ClientOptions struct {
 	DebugOn      bool
 	DebugLevel   int
 	LogFilePath  string
+	Device       string
+}
+
+type ClientAttacker struct {
+	Logger             *util.Logger
+	NextNetEmCommands  [][]string // only for tc commands
+	Ports_under_attack []string   // ports under attack
+	Process_name       string     // process under attack
+	Device             string
+	Handle             string
+	Parent_band        string
+	DelayPackets       int
+	LossPackets        int
+	DuplicatePackets   int
+	ReorderPackets     int
+	CorruptPackets     int
+	Mu                 *sync.RWMutex
 }
 
 type Client struct {
@@ -22,15 +39,33 @@ type Client struct {
 	logger       *util.Logger
 	Options      ClientOptions
 	ControllerId int
+	Attacker     *ClientAttacker
 }
 
 func NewClient(Id int, options ClientOptions) *Client {
-	return &Client{
+	c := &Client{
 		Id:        Id,
 		InputChan: make(chan *common.RPCPairPeer, 10000),
 		logger:    util.NewLogger(options.DebugLevel, options.DebugOn, options.LogFilePath),
 		Options:   options,
 	}
+
+	attacker := &ClientAttacker{
+		Logger:            c.logger,
+		NextNetEmCommands: [][]string{},
+		Device:            options.Device,
+		Handle:            "20",
+		Parent_band:       "1:2",
+		DelayPackets:      0,
+		LossPackets:       0,
+		DuplicatePackets:  0,
+		ReorderPackets:    0,
+		CorruptPackets:    0,
+		Mu:                &sync.RWMutex{},
+	}
+
+	c.Attacker = attacker
+	return c
 }
 
 // initialize the network layer and run the client
@@ -92,37 +127,6 @@ func (c *Client) run() {
 			default:
 				c.logger.Debug("Unknown message type", 0)
 			}
-		}
-	}()
-}
-
-// periodically send machine stats to the controller
-
-func (c *Client) SendStats() {
-	// send machine stats to the controller
-	go func() {
-		for true {
-			// scrape machine stats and send to the controller
-			//perf_name := []string{"cpu_usage", "mem_usage", "packetsInRate", "packetsOutRate"}
-
-			cpu := util.GetCPUUsage()
-			mem := util.GetMemoryUsage()
-			packetsInRate, packetsOutRate := util.GetNetworkStats() // has a 1s sync delay
-
-			perf_stats := []float32{float32(cpu), float32(mem), float32(packetsInRate), float32(packetsOutRate)}
-			c.Network.Send(&common.RPCPairPeer{
-				RpcPair: &common.RPCPair{
-					Code: common.GetRPCCodes().ControlMsg,
-					Obj: &common.ControlMsg{
-						OperationType: int32(common.GetOperationCodes().Stats),
-						FloatArgs:     perf_stats,
-					},
-				},
-				Peer: c.ControllerId,
-			})
-			time.Sleep(1 * time.Second)
-			c.logger.Debug("Sent stats to controller", 0)
-
 		}
 	}()
 }

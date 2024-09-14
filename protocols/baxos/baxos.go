@@ -106,6 +106,11 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 		panic(err.Error() + " while parsing arrival_rate")
 	}
 
+	ports, ok := ba.options.Option["ports"]
+	if !ok {
+		panic(err.Error() + " while parsing ports")
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(int(num_replicas + num_clients))
 	for i := 0; i < int(num_replicas+num_clients); i++ {
@@ -121,7 +126,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 
 	fmt.Print("Killed all the replicas and clients\n")
 	num_replicas_chan <- int(num_replicas)
-	process_name_chan <- "replica"
+	process_name_chan <- "replica" + "," + ports
 
 	for j := 0; j < int(num_replicas); j++ {
 		go func(i int) {

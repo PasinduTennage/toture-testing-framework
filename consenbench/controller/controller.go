@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 	"toture-test/consenbench/common"
@@ -18,6 +19,7 @@ type ControllerOptions struct {
 	DebugOn        bool
 	DebugLevel     int
 	LogFilePath    string
+	Device         string
 }
 
 // Controller struct
@@ -58,7 +60,7 @@ func (c *Controller) BootstrapClients() error {
 
 	// start the client binary
 	for i := 0; i < len(c.Nodes); i++ {
-		c.Nodes[i].Start_Client()
+		c.Nodes[i].Start_Client(c.Options.Device)
 	}
 	time.Sleep(5 * time.Second)
 	fmt.Println("Started the client binary on all the nodes")
@@ -123,7 +125,7 @@ func (c *Controller) Run(protocol string) {
 	c.InitiliazeNodes()
 	// start the client binary
 	for i := 0; i < len(c.Nodes); i++ {
-		c.Nodes[i].Start_Client()
+		c.Nodes[i].Start_Client(c.Options.Device)
 	}
 	time.Sleep(5 * time.Second)
 	fmt.Println("Started the client binary on all the nodes")
@@ -151,9 +153,12 @@ func (c *Controller) Run(protocol string) {
 	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output_chan, bootstrap_complete_chan, num_replicas_chan, process_name_chan)
 
 	num_replicas := <-num_replicas_chan
-	process_name := <-process_name_chan
+	process_name_and_ports := <-process_name_chan
 
-	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c, c.logger)
+	process_name := strings.Split(process_name_and_ports, ",")[0]
+	ports := strings.Split(process_name_and_ports, ",")[1:]
+
+	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c, c.logger, ports)
 	var attack_impl Attack
 	if c.Options.Attack == "basic" {
 		attack_impl = NewBasicAttack(c.logger)

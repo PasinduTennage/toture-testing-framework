@@ -29,6 +29,9 @@ func (c *Client) Handle(msg *common.ControlMsg) {
 		c.logger.Debug("Received SetLoss signal from controller", 0)
 	} else if int(msg.OperationType) == common.GetOperationCodes().SetBandwidth {
 		c.logger.Debug("Received SetBandwidth signal from controller", 3)
+	} else if int(msg.OperationType) == common.GetOperationCodes().SetPorts {
+		c.logger.Debug("Received SetPorts signal from controller", 3)
+		c.SetPorts(msg)
 	} else {
 		panic("Unknown operation type")
 	}

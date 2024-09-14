@@ -20,6 +20,7 @@ func main() {
 	attack := flag.String("attack", "", "attack name to run")
 	controller_operation_type := flag.String("controller_operation_type", "", "operation type of the controller: bootstrap/copy/run")
 	consensus_algorithm := flag.String("consensus_algorithm", "raft", "consensus algorithm to run")
+	device := flag.String("device", "", "device to attack")
 
 	flag.Parse()
 
@@ -31,6 +32,7 @@ func main() {
 			DebugOn:        *debug_on,
 			DebugLevel:     *debug_level,
 			LogFilePath:    *logFilePath,
+			Device:         *device,
 		}
 		controller := controller.NewController(*id, options)
 		if *controller_operation_type == "bootstrap" {
@@ -48,6 +50,7 @@ func main() {
 			DebugOn:      *debug_on,
 			DebugLevel:   *debug_level,
 			LogFilePath:  *logFilePath,
+			Device:       *device,
 		}
 		client := client.NewClient(*id, options)
 		client.Run()

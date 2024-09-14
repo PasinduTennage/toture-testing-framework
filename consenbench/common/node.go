@@ -87,15 +87,15 @@ func (n *Node) Shut_Down() string {
 
 // start client
 
-func (n *Node) Start_Client() error {
+func (n *Node) Start_Client(device string) error {
 
 	fmt.Printf("Starting client on node: %v\n", n.Id)
 	n.ExecCmd("pkill -f bench")
 
 	if n.Logger.DebugOn {
-		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v", n.HomeDir, n.Id, n.Logger.Level))
+		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v --device %v ", n.HomeDir, n.Id, n.Logger.Level, device))
 	} else {
-		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v ", n.HomeDir, n.Id))
+		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v --device %v", n.HomeDir, n.Id, device))
 	}
 	return nil
 }

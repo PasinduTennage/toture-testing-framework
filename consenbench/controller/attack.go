@@ -22,13 +22,26 @@ func NewAttackNode(id int, controller *Controller, name string, logger *util.Log
 	}
 }
 
+func (n *AttackNode) Init(ports []string) {
+	n.Controller.Network.Send(&common.RPCPairPeer{
+		RpcPair: &common.RPCPair{
+			Code: common.GetRPCCodes().ControlMsg,
+			Obj: &common.ControlMsg{
+				OperationType: int32(common.GetOperationCodes().SetPorts),
+				StringArgs:    append([]string{n.Process_name}, ports...),
+			},
+		},
+		Peer: n.Id,
+	})
+	n.logger.Debug(fmt.Sprintf("Init node %v with process name %v and listening ports %v", n.Id, n.Process_name, ports), 3)
+}
+
 func (n *AttackNode) Kill() {
 	n.Controller.Network.Send(&common.RPCPairPeer{
 		RpcPair: &common.RPCPair{
 			Code: common.GetRPCCodes().ControlMsg,
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().Kill),
-				StringArgs:    []string{n.Process_name},
 			},
 		},
 		Peer: n.Id,
@@ -42,7 +55,6 @@ func (n *AttackNode) Slowdown() {
 			Code: common.GetRPCCodes().ControlMsg,
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().Slowdown),
-				StringArgs:    []string{n.Process_name},
 			},
 		},
 		Peer: n.Id,
@@ -56,7 +68,6 @@ func (n *AttackNode) Pause() {
 			Code: common.GetRPCCodes().ControlMsg,
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().Pause),
-				StringArgs:    []string{n.Process_name},
 			},
 		},
 		Peer: n.Id,
@@ -70,7 +81,6 @@ func (n *AttackNode) Continue() {
 			Code: common.GetRPCCodes().ControlMsg,
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().Continue),
-				StringArgs:    []string{n.Process_name},
 			},
 		},
 		Peer: n.Id,
@@ -236,13 +246,14 @@ func sum(slice []float32) float32 {
 	return total
 }
 
-func GetAttackObjects(num_replicas int, replica_name string, nodes []*common.Node, controller *Controller, logger *util.Logger) ([]*AttackNode, [][]*AttackLink, *LeaderOracle) {
+func GetAttackObjects(num_replicas int, replica_name string, nodes []*common.Node, controller *Controller, logger *util.Logger, ports []string) ([]*AttackNode, [][]*AttackLink, *LeaderOracle) {
 	attackNodes := make([]*AttackNode, num_replicas)
 	attackLinks := make([][]*AttackLink, num_replicas)
 	leaderOracle := NewLeaderOracle(nodes[0:num_replicas], logger)
 
 	for i := 0; i < num_replicas; i++ {
 		attackNodes[i] = NewAttackNode(nodes[i].Id, controller, replica_name, logger)
+		attackNodes[i].Init(ports)
 		attackLinks[i] = make([]*AttackLink, num_replicas)
 		for j := 0; j < num_replicas; j++ {
 			if i != j {

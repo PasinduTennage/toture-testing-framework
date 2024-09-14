@@ -3,4 +3,5 @@ client_path: protocols/baxos/assets/client
 num_replicas: 3
 num_clients: 3
 arrival_rate: 10000
+ports: 10000
 round_trip_time: 5000
