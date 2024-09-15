@@ -227,7 +227,7 @@ func (l *LeaderOracle) GetLeader() int {
 		panic("No leader found")
 	}
 
-	l.logger.Debug(fmt.Sprintf("Leader is %v", leader.Id), 3)
+	l.logger.Debug(fmt.Sprintf("Likely Leader is %v, with cpu: %v, net-in: %v, net-out: %v", leader.Id, highestCPU, highestNetIn, highestNetOut), 3)
 
 	return leader.Id
 }
