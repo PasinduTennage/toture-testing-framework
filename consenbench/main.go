@@ -14,13 +14,13 @@ func main() {
 	debug_on := flag.Bool("debug_on", false, "turn on debug mode")
 	debug_level := flag.Int("debug_level", 0, "debug level")
 	logFilePath := flag.String("log_file_path", "bench/", "log file path")
+	device := flag.String("device", "", "device to attack")
 
 	// controller specific arguments
 	attack_duration := flag.Int("attack_duration", 60, "duration of the attack in seconds")
 	attack := flag.String("attack", "", "attack name to run")
 	controller_operation_type := flag.String("controller_operation_type", "", "operation type of the controller: bootstrap/copy/run")
 	consensus_algorithm := flag.String("consensus_algorithm", "raft", "consensus algorithm to run")
-	device := flag.String("device", "", "device to attack")
 
 	flag.Parse()
 

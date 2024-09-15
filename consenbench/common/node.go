@@ -73,7 +73,7 @@ func (n *Node) Put_Load(local_location string, remote_location string) error {
 	if err != nil {
 		panic(fmt.Sprintf("FAILED to upload file via %v, err:%v, output:%s for node:%v\n\n", fmt.Sprintf("%v", scpCmd), err, string(output), n.Id))
 	} else {
-		n.Logger.Debug(fmt.Sprintf("SUCESS Upload %v successful for node %v\n\n", fmt.Sprintf("%v", scpCmd), n.Id), 0)
+		n.Logger.Debug(fmt.Sprintf("SUCCESS Upload %v successful for node %v\n\n", fmt.Sprintf("%v", scpCmd), n.Id), 0)
 	}
 	return nil
 }
