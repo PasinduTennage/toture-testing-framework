@@ -4,7 +4,7 @@ This repository implements a networked tool to test the robustness of consensus 
 
 ## Precautions
 
-This project is currently in its **early development stage** and is **not yet ready for production use**.
+This project is currently under **heavy development** and is **not yet ready for production use**.
 
 
 
