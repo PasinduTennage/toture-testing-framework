@@ -55,5 +55,4 @@ func main() {
 		client := client.NewClient(*id, options)
 		client.Run()
 	}
-
 }
