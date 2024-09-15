@@ -33,7 +33,7 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 				if i == j {
 					continue
 				}
-				links[i][j].SetLoss(10)
+				links[i][j].SetLoss(100)
 			}
 		}
 		time.Sleep(1 * time.Second)
