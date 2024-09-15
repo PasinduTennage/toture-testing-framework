@@ -8,6 +8,7 @@ import (
 func (c *Client) Handle(msg *common.ControlMsg) {
 	if int(msg.OperationType) == common.GetOperationCodes().ShutDown {
 		c.logger.Debug("Received ShutDown signal from controller", 3)
+		c.CleanUp()
 		os.Exit(0)
 	} else if int(msg.OperationType) == common.GetOperationCodes().Stats {
 		panic("Received Stats signal from controller")
@@ -16,7 +17,7 @@ func (c *Client) Handle(msg *common.ControlMsg) {
 		c.Kill()
 	} else if int(msg.OperationType) == common.GetOperationCodes().Slowdown {
 		c.logger.Debug("Received Slowdown signal from controller", 3)
-		c.SlowDown()
+		c.SlowDown(msg.StringArgs[0])
 	} else if int(msg.OperationType) == common.GetOperationCodes().Pause {
 		c.logger.Debug("Received Pause signal from controller", 3)
 		c.Pause()

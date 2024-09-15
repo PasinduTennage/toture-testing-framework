@@ -30,6 +30,7 @@ type ClientAttacker struct {
 	ReorderPackets     int
 	CorruptPackets     int
 	Mu                 *sync.RWMutex
+	On_Off_Chan        chan bool
 }
 
 type Client struct {
@@ -62,6 +63,7 @@ func NewClient(Id int, options ClientOptions) *Client {
 		ReorderPackets:    0,
 		CorruptPackets:    0,
 		Mu:                &sync.RWMutex{},
+		On_Off_Chan:       make(chan bool, 1000),
 	}
 
 	c.Attacker = attacker

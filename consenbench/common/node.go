@@ -44,7 +44,7 @@ func (n *Node) ExecCmd(cmd string) string {
 	sshCmd := exec.Command("ssh", "-i", n.PrivateKeyPath, fmt.Sprintf("%s@%s", n.Username, n.Ip), cmd)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
-		n.Logger.Debug(fmt.Sprintf("FAILED to execute %v via SSH, err:%v, output:%v for node:%v\n\n", fmt.Sprintf("%v", sshCmd), err, string(output), n.Id), 3)
+		fmt.Printf("FAILED to execute %v via SSH, err:%v, output:%v for node:%v\n\n", fmt.Sprintf("%v", sshCmd), err, string(output), n.Id)
 	} else {
 		n.Logger.Debug(fmt.Sprintf("SUCCESS %v via SSH, output: %v for node: %v\n\n", fmt.Sprintf("%v", sshCmd), string(output), n.Id), 0)
 	}
@@ -90,7 +90,7 @@ func (n *Node) Shut_Down() string {
 func (n *Node) Start_Client(device string) error {
 
 	fmt.Printf("Starting client on node: %v\n", n.Id)
-	n.ExecCmd("pkill -f bench")
+	n.ExecCmd("pkill bench")
 
 	if n.Logger.DebugOn {
 		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v --device %v ", n.HomeDir, n.Id, n.Logger.Level, device))
