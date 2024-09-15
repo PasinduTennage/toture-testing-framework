@@ -76,7 +76,7 @@ func (c *Client) Init() {
 	c.RunCommand("tc", []string{"filter", "del", "dev", c.Options.Device})
 	c.RunCommand("tc", []string{"qdisc", "del", "dev", c.Options.Device, "root"})
 	c.RunCommand("tc", []string{"qdisc", "add", "dev", c.Options.Device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
-	c.intern_slowdown()
+	go c.intern_slowdown()
 	c.logger.Debug("Initialized TC ", 3)
 }
 
