@@ -15,6 +15,9 @@ import (
 func (c *Client) SetPorts(msg *common.ControlMsg) {
 	replica_name := msg.StringArgs[0]
 	ports := msg.StringArgs[1:]
+	if len(ports) == 0 {
+		panic("No ports provided")
+	}
 	c.Attacker.Process_name = replica_name
 	c.Attacker.Ports_under_attack = ports
 	c.logger.Debug("Set replica name to "+replica_name+" and ports to "+fmt.Sprintf("%v", ports), 3)
@@ -27,9 +30,6 @@ func (c *Client) SendStats() {
 	// send machine stats to the controller
 	go func() {
 		for true {
-			// scrape machine stats and send to the controller
-			//perf_name := []string{"cpu_usage", "mem_usage", "packetsInRate", "packetsOutRate"}
-
 			cpu := util.GetCPUUsage()
 			mem := util.GetMemoryUsage()
 			packetsInRate, packetsOutRate := util.GetNetworkStats() // has a 1s sync delay
@@ -45,7 +45,7 @@ func (c *Client) SendStats() {
 				},
 				Peer: c.ControllerId,
 			})
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 			c.logger.Debug("Sent stats to controller", 0)
 
 		}
@@ -67,7 +67,6 @@ func (c *Client) RunCommand(name string, arg []string) error {
 	} else {
 		c.logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 3)
 	}
-
 	return nil
 }
 
@@ -77,6 +76,7 @@ func (c *Client) Init() {
 	c.RunCommand("tc", []string{"filter", "del", "dev", c.Options.Device})
 	c.RunCommand("tc", []string{"qdisc", "del", "dev", c.Options.Device, "root"})
 	c.RunCommand("tc", []string{"qdisc", "add", "dev", c.Options.Device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
+	c.intern_slowdown()
 	c.logger.Debug("Initialized TC ", 3)
 }
 
@@ -155,7 +155,7 @@ func (c *Client) intern_slowdown() {
 			c.Pause()
 			time.Sleep(100 * time.Millisecond)
 			c.Continue()
-			c.logger.Debug("slowdowned", 3)
+			c.logger.Debug("Slowdowned inside thread", 3)
 		}
 	}
 }
@@ -164,9 +164,19 @@ func (c *Client) intern_slowdown() {
 
 func (c *Client) SlowDown(action string) {
 	if action == "true" {
-		c.Attacker.On_Off_Chan <- true
+		select {
+		case c.Attacker.On_Off_Chan <- true:
+			c.logger.Debug("slowdown", 3)
+		default:
+			c.logger.Debug("cannot invoke slowdown -- buffers filled", 3)
+		}
 	} else {
-		c.Attacker.On_Off_Chan <- false
+		select {
+		case c.Attacker.On_Off_Chan <- false:
+			c.logger.Debug("Cancelled slowdown", 3)
+		default:
+			c.logger.Debug("cannot cancel slowdown -- buffers filled", 3)
+		}
 	}
 }
 
@@ -174,14 +184,14 @@ func (c *Client) SlowDown(action string) {
 
 func (c *Client) Pause() {
 	c.RunCommand("pkill", []string{"-STOP", c.Attacker.Process_name})
-	c.logger.Debug("paused", 2)
+	c.logger.Debug("paused", 3)
 }
 
 // continue the client
 
 func (c *Client) Continue() {
 	c.RunCommand("pkill", []string{"-CONT", c.Attacker.Process_name})
-	c.logger.Debug("continue", 2)
+	c.logger.Debug("continue", 3)
 }
 
 // set the skew
