@@ -64,7 +64,7 @@ type OperationCodes struct {
 }
 
 /*
-	A static function which assigns a unique int to each operation message type
+	A static function which assigns a unique int to each operation type
 */
 
 func GetOperationCodes() OperationCodes {

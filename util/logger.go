@@ -22,9 +22,7 @@ func NewLogger(level int, debugOn bool, logFilePath string) *Logger {
 	if err != nil {
 		panic("Failed to create log file: " + err.Error())
 	}
-	l.LogFile.WriteString("Log file created\n")
-	l.Debug("created log file", 0)
-
+	l.Debug("Created log file", 0)
 	return l
 
 }
