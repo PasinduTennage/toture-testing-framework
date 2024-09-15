@@ -14,6 +14,7 @@ type NodeStat struct {
 	mem_usage   []float32
 	network_in  []float32
 	network_out []float32
+	update      bool
 }
 
 type Node struct {
@@ -33,6 +34,7 @@ func (n *Node) InitNode(logger *util.Logger) {
 		mem_usage:   make([]float32, 0),
 		network_in:  make([]float32, 0),
 		network_out: make([]float32, 0),
+		update:      false,
 	}
 	n.statMutex = &sync.Mutex{}
 	n.Logger = logger
@@ -100,12 +102,26 @@ func (n *Node) Start_Client(device string) error {
 	return nil
 }
 
+func (n *Node) StartUpdateStats() {
+	n.statMutex.Lock()
+	n.stat.update = true
+	n.statMutex.Unlock()
+}
+
+func (n *Node) StopUpdateStats() {
+	n.statMutex.Lock()
+	n.stat.update = false
+	n.statMutex.Unlock()
+}
+
 func (n *Node) UpdateStats(perf []float32) {
 	n.statMutex.Lock()
-	n.stat.cpu_usage = append(n.stat.cpu_usage, perf[0])
-	n.stat.mem_usage = append(n.stat.mem_usage, perf[1])
-	n.stat.network_in = append(n.stat.network_in, perf[2])
-	n.stat.network_out = append(n.stat.network_out, perf[3])
+	if n.stat.update {
+		n.stat.cpu_usage = append(n.stat.cpu_usage, perf[0])
+		n.stat.mem_usage = append(n.stat.mem_usage, perf[1])
+		n.stat.network_in = append(n.stat.network_in, perf[2])
+		n.stat.network_out = append(n.stat.network_out, perf[3])
+	}
 	n.statMutex.Unlock()
 }
 

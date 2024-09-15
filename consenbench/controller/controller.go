@@ -99,3 +99,17 @@ func (c *Controller) DownloadClientLogs() {
 		c.Nodes[i].Get_Load(c.Nodes[i].HomeDir+"bench/log.log", fmt.Sprintf("bench/%v.log", c.Nodes[i].Id))
 	}
 }
+
+func (c *Controller) PrintStats(num_replicas int) {
+	cpu_usage, mem_usage, network_in, network_out := float32(0.0), float32(0.0), float32(0.0), float32(0.0)
+	counter := 0
+	for i := 0; i < num_replicas; i++ {
+		cpu, mem, net_in, net_out := c.Nodes[i].GetStats()
+		cpu_usage += sum(cpu)
+		mem_usage += sum(mem)
+		network_in += sum(net_in)
+		network_out += sum(net_out)
+		counter += len(cpu)
+	}
+	fmt.Printf("Average CPU: %v, Average Memory: %v, Average Network In: %v, Average Network Out: %v\n", cpu_usage/float32(counter), mem_usage/float32(counter), network_in/float32(counter), network_out/float32(counter))
+}

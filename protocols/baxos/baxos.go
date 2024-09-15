@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"toture-test/consenbench/common"
@@ -178,9 +179,9 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 
 	fmt.Print("Killed all the replicas and clients\n")
 
-	fmt.Printf("Client outputs: %v\n", clientOutputs)
+	//fmt.Printf("Client outputs: %v\n", clientOutputs)
 
-	result <- util.Performance{} //TODO
+	result <- ba.GetPerformance(clientOutputs)
 }
 
 func (ba *Baxos) ExtractOptions(path string) {
@@ -203,4 +204,42 @@ func (ba *Baxos) ExtractOptions(path string) {
 	fmt.Printf("Baxos options:\n %v\n", options.Option)
 
 	ba.options = options
+}
+
+func (ba *Baxos) GetPerformance(outputs []string) util.Performance {
+	throughput := make([]float64, len(outputs))
+	medians := make([]float64, len(outputs))
+	percentil99s := make([]float64, len(outputs))
+
+	for i := 0; i < len(outputs); i++ {
+		outputLines := strings.Split(outputs[i], "\n")
+		for j := 0; j < len(outputLines); j++ {
+			if strings.Contains(outputLines[j], "Throughput") {
+				throughput[i], _ = strconv.ParseFloat(strings.Split(outputLines[j], " ")[5], 64)
+			}
+			if strings.Contains(outputLines[j], "Median") {
+				medians[i], _ = strconv.ParseFloat(strings.Split(outputLines[j], " ")[3], 64)
+			}
+			if strings.Contains(outputLines[j], "99 pecentile") {
+				percentil99s[i], _ = strconv.ParseFloat(strings.Split(outputLines[j], " ")[4], 64)
+			}
+		}
+	}
+	sum_throughput := 0.0
+	sum_median := 0.0
+	sum_percentle := 0.0
+
+	for i := 0; i < len(throughput); i++ {
+		sum_throughput += throughput[i]
+		sum_median += medians[i]
+		sum_percentle += percentil99s[i]
+	}
+
+	return util.Performance{
+		map[string]string{
+			"throughput":   fmt.Sprintf("%v", sum_throughput),
+			"median":       fmt.Sprintf("%v", sum_median/float64(len(throughput))),
+			"percentile99": fmt.Sprintf("%v", sum_percentle/float64(len(throughput))),
+		},
+	}
 }

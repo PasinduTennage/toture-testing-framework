@@ -122,9 +122,24 @@ func (c *Controller) Run(protocol string) {
 	<-bootstrap_complete_chan // wait for the bootstrap to complete
 	fmt.Print("Bootstrap complete, starting attack from controller\n")
 
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].StartUpdateStats()
+	}
+
 	attack_impl.Attack(attackNodes, attackLinks, leaderOracle, c.Options.AttackDuration)
 	fmt.Print("Attack complete\n")
-	<-performance_output_chan
+
+	for i := 0; i < len(c.Nodes); i++ {
+		c.Nodes[i].StopUpdateStats()
+	}
+
+	performance := <-performance_output_chan
+	for key, value := range performance.Option {
+		fmt.Printf("%v: %v\n", key, value)
+	}
+
+	c.PrintStats(num_replicas)
+
 	c.CloseClients()
 	fmt.Println("Closed the clients")
 	c.DownloadClientLogs()
