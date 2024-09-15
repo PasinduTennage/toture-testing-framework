@@ -114,6 +114,8 @@ func (c *Controller) Run(protocol string) {
 	var attack_impl Attack
 	if c.Options.Attack == "basic" {
 		attack_impl = NewBasicAttack(c.logger)
+	} else if c.Options.Attack == "noop" {
+		attack_impl = NewNoopAttack(c.logger)
 	} else {
 		panic("Unknown attack")
 
