@@ -22,15 +22,18 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 
 	for time.Now().Sub(start_time).Seconds() < float64(duration-5) {
 		for _, node := range nodes {
-			node.Slowdown()
+			node.Slowdown("true")
 		}
 		time.Sleep(1 * time.Second)
+		for _, node := range nodes {
+			node.Slowdown("false")
+		}
 		for i := 0; i < len(links); i++ {
 			for j := 0; j < len(links[i]); j++ {
 				if i == j {
 					continue
 				}
-				links[i][j].SetLoss(0)
+				links[i][j].SetLoss(10)
 			}
 		}
 		time.Sleep(1 * time.Second)
