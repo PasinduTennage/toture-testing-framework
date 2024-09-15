@@ -54,12 +54,13 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 		config_inputs = append(config_inputs, nodes[i].Ip)
 	}
 
-	fmt.Printf("Running pythong command: %v\n", config_inputs)
+	fmt.Printf("Running python command: %v\n", config_inputs)
 
 	sshCmd := exec.Command("python3", config_inputs...)
 	output, err := sshCmd.CombinedOutput()
 	if err != nil {
-		ba.logger.Debug("Error while running config-generate.py "+err.Error()+" "+string(output), 3)
+
+		panic("Error while running config-generate.py " + err.Error() + " " + string(output))
 	}
 	if len(output) > 0 {
 		// write the output to protocols/baxos/assets/ip_config.yaml
