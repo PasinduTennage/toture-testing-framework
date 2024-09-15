@@ -9,7 +9,7 @@ import (
 )
 
 type ClientOptions struct {
-	NodeInfoFile string // the yaml file containing the ip address of each node, controller port, client por
+	NodeInfoFile string // the yaml file containing the ip address of each node, controller port, client port
 	DebugOn      bool
 	DebugLevel   int
 	LogFilePath  string
