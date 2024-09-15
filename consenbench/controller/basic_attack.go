@@ -37,6 +37,14 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 			}
 		}
 		time.Sleep(1 * time.Second)
+		for i := 0; i < len(links); i++ {
+			for j := 0; j < len(links[i]); j++ {
+				if i == j {
+					continue
+				}
+				links[i][j].SetLoss(0)
+			}
+		}
 	}
 
 	fmt.Print("Basic attack complete\n")
