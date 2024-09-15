@@ -33,7 +33,7 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 				if i == j {
 					continue
 				}
-				links[i][j].SetLoss(100)
+				links[i][j].SetLoss(50)
 			}
 		}
 		time.Sleep(1 * time.Second)
@@ -45,6 +45,7 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 				links[i][j].SetLoss(0)
 			}
 		}
+		fmt.Printf("The leader is %v\n", oracle.GetLeader())
 	}
 
 	fmt.Print("Basic attack complete\n")
