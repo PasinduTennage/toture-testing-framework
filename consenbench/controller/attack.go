@@ -205,9 +205,9 @@ func (l *LeaderOracle) GetLeader() int {
 		cpu_usage, _, network_in, network_out := node.GetStats()
 
 		// Get the last 10 slots for each metric, or fewer if not enough data
-		cpuUsage := cpu_usage[max(0, len(cpu_usage)-10):]
-		netIn := network_in[max(0, len(network_in)-10):]
-		netOut := network_out[max(0, len(network_out)-10):]
+		cpuUsage := cpu_usage[max(0, len(cpu_usage)-3):]
+		netIn := network_in[max(0, len(network_in)-3):]
+		netOut := network_out[max(0, len(network_out)-3):]
 
 		// Compute the sums of the last 10 slots
 		cpuSum := sum(cpuUsage)
