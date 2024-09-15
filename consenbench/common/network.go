@@ -22,7 +22,6 @@ type Network struct {
 	OutChan             chan *RPCPairPeer
 	logger              *util.Logger
 	rpcTable            map[uint8]*RPCPair // map each RPC type (message type) to its unique number
-	messageCodes        MessageCode
 }
 
 type NetworkConfig struct {
@@ -41,7 +40,6 @@ func NewNetwork(Id int, config *NetworkConfig, outChan chan *RPCPairPeer, logger
 		OutChan:             outChan,
 		logger:              logger,
 		rpcTable:            make(map[uint8]*RPCPair),
-		messageCodes:        GetRPCCodes(),
 	}
 
 	n.logger.Debug(fmt.Sprintf("network created %v\n", n), 3)
