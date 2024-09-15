@@ -123,8 +123,8 @@ func (c *Controller) Run(protocol string) {
 	fmt.Print("Bootstrap complete, starting attack from controller\n")
 
 	attack_impl.Attack(attackNodes, attackLinks, leaderOracle, c.Options.AttackDuration)
-	<-performance_output_chan
 	fmt.Print("Attack complete\n")
+	<-performance_output_chan
 	c.CloseClients()
 	fmt.Println("Closed the clients")
 	c.DownloadClientLogs()
