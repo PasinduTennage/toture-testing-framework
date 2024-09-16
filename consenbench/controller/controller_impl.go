@@ -128,6 +128,8 @@ func (c *Controller) Run(protocol string) {
 		c.Nodes[i].StartUpdateStats()
 	}
 
+	time.Sleep(5 * time.Second)
+
 	attack_impl.Attack(attackNodes, attackLinks, leaderOracle, c.Options.AttackDuration)
 	fmt.Print("Attack complete\n")
 
