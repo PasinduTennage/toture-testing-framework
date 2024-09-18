@@ -50,15 +50,6 @@ func (c *Client) CleanUp() error {
 	return nil
 }
 
-// kill the client
-
-func (c *Client) Kill() {
-	c.ExecuteLastNetEmCommands()
-	c.CleanUp()
-	c.RunCommand("pkill", []string{c.Attacker.Process_name})
-	c.logger.Debug("killed consensus node", 3)
-}
-
 // set the delay
 
 func (c *Client) SetDelay(f float32) {

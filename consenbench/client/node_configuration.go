@@ -59,6 +59,15 @@ func (c *Client) Continue() {
 	c.logger.Debug("continue", 3)
 }
 
+// kill the client
+
+func (c *Client) Kill() {
+	c.ExecuteLastNetEmCommands()
+	c.CleanUp()
+	c.RunCommand("pkill", []string{c.Attacker.Process_name})
+	c.logger.Debug("killed consensus node", 3)
+}
+
 // set the skew
 
 func (c *Client) SetSkew(f float32) {
