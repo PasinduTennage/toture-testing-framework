@@ -105,10 +105,10 @@ func (c *Controller) PrintStats(num_replicas int) {
 	counter := 0
 	for i := 0; i < num_replicas; i++ {
 		cpu, mem, net_in, net_out := c.Nodes[i].GetStats()
-		cpu_usage += sum(cpu)
-		mem_usage += sum(mem)
-		network_in += sum(net_in)
-		network_out += sum(net_out)
+		cpu_usage += Sum(cpu)
+		mem_usage += Sum(mem)
+		network_in += Sum(net_in)
+		network_out += Sum(net_out)
 		counter += len(cpu)
 	}
 	fmt.Printf("Average CPU: %v, Average Memory: %v, Average Network In: %v, Average Network Out: %v\n", cpu_usage/float32(counter), mem_usage/float32(counter), network_in/float32(counter), network_out/float32(counter))

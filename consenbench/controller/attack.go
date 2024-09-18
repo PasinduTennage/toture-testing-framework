@@ -5,14 +5,14 @@ import (
 	"toture-test/util"
 )
 
-func max(i int, i2 int) int {
+func Max(i int, i2 int) int {
 	if i > i2 {
 		return i
 	}
 	return i2
 }
 
-func sum(slice []float32) float32 {
+func Sum(slice []float32) float32 {
 	var total float32
 	for _, val := range slice {
 		total += val
