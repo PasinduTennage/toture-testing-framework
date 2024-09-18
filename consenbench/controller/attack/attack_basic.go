@@ -47,6 +47,7 @@ func (a *BasicAttack) Attack(nodes []*controller.AttackNode, links [][]*controll
 			}
 		}
 		fmt.Printf("The leader is %v\n", oracle.GetLeader())
+		fmt.Printf("The leader order is %v\n", oracle.GetTopNLeaders())
 	}
 
 	fmt.Print("Basic attack complete\n")
