@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"time"
-	"toture-test/consenbench/controller"
 	"toture-test/util"
 )
 
@@ -17,7 +16,7 @@ func NewBasicAttack(logger *util.Logger) *BasicAttack {
 	}
 }
 
-func (a *BasicAttack) Attack(nodes []*controller.AttackNode, links [][]*controller.AttackLink, oracle *controller.LeaderOracle, duration int) {
+func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle *LeaderOracle, duration int) {
 	fmt.Printf("Running basic attack for %v seconds\n", duration)
 	start_time := time.Now()
 
