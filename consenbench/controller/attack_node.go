@@ -22,13 +22,16 @@ func NewAttackNode(id int, controller *Controller, name string, logger *util.Log
 	}
 }
 
-func (n *AttackNode) Init(ports []string) {
+// send the initial replica specific information to the client
+
+func (n *AttackNode) Init(ports []string, id_ip []string) {
 	n.Controller.Network.Send(&common.RPCPairPeer{
 		RpcPair: &common.RPCPair{
 			Code: common.GetRPCCodes().ControlMsg,
 			Obj: &common.ControlMsg{
-				OperationType: int32(common.GetOperationCodes().SetPorts),
+				OperationType: int32(common.GetOperationCodes().Init),
 				StringArgs:    append([]string{n.Process_name}, ports...),
+				Ips:           id_ip,
 			},
 		},
 		Peer: n.Id,

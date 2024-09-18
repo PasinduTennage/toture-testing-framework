@@ -48,23 +48,25 @@ func (c *Client) SlowDown(action string) {
 // pause the client
 
 func (c *Client) Pause() {
-	c.RunCommand("pkill", []string{"-STOP", c.Attacker.Process_name})
+	RunCommand("pkill", []string{"-STOP", c.Attacker.Process_name}, c.logger)
 	c.logger.Debug("paused", 3)
 }
 
 // continue the client
 
 func (c *Client) Continue() {
-	c.RunCommand("pkill", []string{"-CONT", c.Attacker.Process_name})
+	RunCommand("pkill", []string{"-CONT", c.Attacker.Process_name}, c.logger)
 	c.logger.Debug("continue", 3)
 }
 
 // kill the client
 
 func (c *Client) Kill() {
-	c.ExecuteLastNetEmCommands()
+	for _, v := range c.Attacker.NetEmAttackers {
+		v.ExecuteLastNetEmCommands()
+	}
 	c.CleanUp()
-	c.RunCommand("pkill", []string{c.Attacker.Process_name})
+	RunCommand("pkill", []string{c.Attacker.Process_name}, c.logger)
 	c.logger.Debug("killed consensus node", 3)
 }
 

@@ -60,7 +60,7 @@ type OperationCodes struct {
 	SetDelay     int
 	SetLoss      int
 	SetBandwidth int
-	SetPorts     int
+	Init         int
 }
 
 /*
@@ -80,7 +80,7 @@ func GetOperationCodes() OperationCodes {
 		SetDelay:     9,
 		SetLoss:      10,
 		SetBandwidth: 11,
-		SetPorts:     12,
+		Init:         12,
 	}
 }
 

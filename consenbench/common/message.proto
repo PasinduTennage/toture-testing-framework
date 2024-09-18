@@ -6,4 +6,6 @@ message ControlMsg {
   int32 operationType = 1;
   repeated string stringArgs = 2;
   repeated float floatArgs = 3;
+  repeated int32 intArgs = 4;
+  repeated string ips = 5;
 }

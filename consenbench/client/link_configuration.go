@@ -1,82 +1,155 @@
 package client
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+	"toture-test/util"
+)
 
-func (c *Client) NetInit() {
-	c.RunCommand("tc", []string{"filter", "del", "dev", c.Options.Device})
-	c.RunCommand("tc", []string{"qdisc", "del", "dev", c.Options.Device, "root"})
-	c.RunCommand("tc", []string{"qdisc", "add", "dev", c.Options.Device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
+type NetEmAttacker struct {
+	Id                 int
+	IP                 string
+	Handle             string
+	ParentBand         string
+	NextNetEmCommands  [][]string
+	DelayPackets       int
+	LossPackets        int
+	DuplicatePackets   int
+	ReorderPackets     int
+	CorruptPackets     int
+	logger             *util.Logger
+	Ports_under_attack []string
+	Device             string
+}
+
+func (c *Client) NetInit(id_ip []string, ports_under_attack []string, device string) {
+	RunCommand("tc", []string{"filter", "del", "dev", c.Options.Device}, c.logger)
+	RunCommand("tc", []string{"qdisc", "del", "dev", c.Options.Device, "root"}, c.logger)
+	RunCommand("tc", []string{"qdisc", "add", "dev", c.Options.Device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(len(id_ip) + 5)}, c.logger)
+	c.InitializeNetEmClients(id_ip, c.logger, ports_under_attack, device)
+}
+
+func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Ports_under_attack []string, device string) {
+	c.Attacker.NetEmAttackers = make(map[int]NetEmAttacker)
+	for i := 0; i < len(id_ip); i++ {
+		id, ip := strings.Split(id_ip[i], ":")[0], strings.Split(id_ip[i], ":")[1]
+		id_int, err := strconv.Atoi(id)
+		if err != nil {
+			panic(err)
+		}
+		c.Attacker.NetEmAttackers[id_int] = NetEmAttacker{
+			Id:                 id_int,
+			IP:                 ip,
+			Handle:             strconv.Itoa((i + 2) * 10),
+			ParentBand:         "1:" + strconv.Itoa((i + 2)),
+			NextNetEmCommands:  [][]string{},
+			DelayPackets:       0,
+			LossPackets:        0,
+			DuplicatePackets:   0,
+			ReorderPackets:     0,
+			CorruptPackets:     0,
+			logger:             logger,
+			Ports_under_attack: Ports_under_attack,
+			Device:             device,
+		}
+
+		c.logger.Debug("Initialized net em attacker with id "+strconv.Itoa(id_int)+" and ip "+ip, 3)
+	}
 }
 
 // Execute the Pending commands
 
-func (c *Client) ExecuteLastNetEmCommands() error {
+func (c *NetEmAttacker) ExecuteLastNetEmCommands() error {
 	var err error
-	for i := 0; i < len(c.Attacker.NextNetEmCommands); i++ {
-		if len(c.Attacker.NextNetEmCommands[i]) == 0 {
+	for i := 0; i < len(c.NextNetEmCommands); i++ {
+		if len(c.NextNetEmCommands[i]) == 0 {
 			continue
 		}
-		err = c.RunCommand(c.Attacker.NextNetEmCommands[i][0], c.Attacker.NextNetEmCommands[i][1:])
+		err = RunCommand(c.NextNetEmCommands[i][0], c.NextNetEmCommands[i][1:], c.logger)
 	}
-	c.Attacker.NextNetEmCommands = [][]string{}
+	c.NextNetEmCommands = [][]string{}
+	return err
+}
+
+func (c *NetEmAttacker) SetNewHandler() error {
+	if c.ReorderPackets > 0 && c.DelayPackets == 0 {
+		c.DelayPackets = 1
+		defer c.decrementDelay()
+	}
+
+	err := RunCommand("tc", []string{"qdisc", "add", "dev", c.Device, "parent", c.ParentBand, "handle", c.Handle + ":", "netem", "delay", strconv.Itoa(c.DelayPackets) + "ms", "loss", strconv.Itoa(c.LossPackets) + "%", "duplicate", strconv.Itoa(c.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.CorruptPackets) + "%"}, c.logger)
+	c.applyHandleToEachPort()
+	c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc", "qdisc", "del", "dev", c.Device, "parent", c.ParentBand, "handle", c.Handle + ":", "netem", "delay", strconv.Itoa(c.DelayPackets) + "ms", "loss", strconv.Itoa(c.LossPackets) + "%", "duplicate", strconv.Itoa(c.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.CorruptPackets) + "%"})
+	c.logger.Debug("Set new net em handler", 3)
 	return err
 }
 
 // apply the handle to each port
 
-func (c *Client) applyHandleToEachPort() {
+func (c *NetEmAttacker) applyHandleToEachPort() {
 	i := 1
-	for _, port := range c.Attacker.Ports_under_attack {
-		c.RunCommand("tc", []string{"filter", "add", "dev", c.Attacker.Device, "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(i), "u32", "match", "ip", "dport", port, "0xffff", "flowid", c.Attacker.Parent_band})
-		c.Attacker.NextNetEmCommands = append(c.Attacker.NextNetEmCommands, []string{"tc", "filter", "del", "dev", c.Attacker.Device, "protocol", "ip", "parent", "1:0", "prio", strconv.Itoa(i), "u32", "match", "ip", "dport", port, "0xffff", "flowid", c.Attacker.Parent_band})
+	for _, port := range c.Ports_under_attack {
+		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", c.ParentBand, "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand}, c.logger)
+		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc" + "filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:", "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand})
 		i++
 	}
 }
 
-func (c *Client) decrementDelay() {
-	c.Attacker.DelayPackets--
-}
-
-func (c *Client) SetNewHandler() error {
-	if c.Attacker.ReorderPackets > 0 && c.Attacker.DelayPackets == 0 {
-		c.Attacker.DelayPackets = 1
-		defer c.decrementDelay()
-	}
-
-	err := c.RunCommand("tc", []string{"qdisc", "add", "dev", c.Attacker.Device, "parent", c.Attacker.Parent_band, "handle", c.Attacker.Handle + ":", "netem", "delay", strconv.Itoa(c.Attacker.DelayPackets) + "ms", "loss", strconv.Itoa(c.Attacker.LossPackets) + "%", "duplicate", strconv.Itoa(c.Attacker.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.Attacker.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.Attacker.CorruptPackets) + "%"})
-	c.applyHandleToEachPort()
-	c.Attacker.NextNetEmCommands = append(c.Attacker.NextNetEmCommands, []string{"tc", "qdisc", "del", "dev", c.Attacker.Device, "parent", c.Attacker.Parent_band, "handle", c.Attacker.Handle + ":", "netem", "delay", strconv.Itoa(c.Attacker.DelayPackets) + "ms", "loss", strconv.Itoa(c.Attacker.LossPackets) + "%", "duplicate", strconv.Itoa(c.Attacker.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.Attacker.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.Attacker.CorruptPackets) + "%"})
-	c.logger.Debug("Set new net em handler", 3)
-	return err
-}
-
-func (c *Client) CleanUp() error {
-	c.RunCommand("tc", []string{"filter", "del", "dev", c.Attacker.Device})
-	c.RunCommand("tc", []string{"qdisc", "del", "dev", c.Attacker.Device, "root"})
-	return nil
+func (c *NetEmAttacker) decrementDelay() {
+	c.DelayPackets--
 }
 
 // set the delay
 
-func (c *Client) SetDelay(f float32) {
+func (c *NetEmAttacker) SetDelay(f float32) {
 	c.ExecuteLastNetEmCommands()
-	c.Attacker.DelayPackets = int(f)
+	c.DelayPackets = int(f)
 	c.logger.Debug("set delay", 3)
 	c.SetNewHandler()
 }
 
 // set the loss
 
-func (c *Client) SetLoss(f float32) {
+func (c *NetEmAttacker) SetLoss(f float32) {
 	c.ExecuteLastNetEmCommands()
-	c.Attacker.LossPackets = int(f)
+	c.LossPackets = int(f)
 	c.logger.Debug("set loss", 3)
 	c.SetNewHandler()
 }
 
 // set the bandwidth
 
-func (c *Client) SetBandwidth(f float32) {
+func (c *NetEmAttacker) SetBandwidth(f float32) {
 	// TODO
 	panic("Not implemented")
+}
+
+func (c *Client) SetDelay(f float32, i int32) {
+	node, ok := c.Attacker.NetEmAttackers[int(i)]
+	if !ok {
+		panic("Node not found")
+	}
+	node.SetDelay(f)
+}
+
+func (c *Client) SetLoss(f float32, i int32) {
+	node, ok := c.Attacker.NetEmAttackers[int(i)]
+	if !ok {
+		panic("Node not found")
+	}
+	node.SetLoss(f)
+}
+
+func (c *Client) SetBandwidth(f float32, i int32) {
+	node, ok := c.Attacker.NetEmAttackers[int(i)]
+	if !ok {
+		panic("Node not found")
+	}
+	node.SetBandwidth(f)
+}
+
+func (c *Client) CleanUp() error {
+	RunCommand("tc", []string{"filter", "del", "dev", c.Attacker.Device}, c.logger)
+	RunCommand("tc", []string{"qdisc", "del", "dev", c.Attacker.Device, "root"}, c.logger)
+	return nil
 }

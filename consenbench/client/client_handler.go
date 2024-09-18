@@ -32,16 +32,16 @@ func (c *Client) Handle(msg *common.ControlMsg) {
 		c.SetDrift(msg.FloatArgs[0])
 	} else if int(msg.OperationType) == common.GetOperationCodes().SetDelay {
 		c.logger.Debug("Received SetDelay signal from controller", 3)
-		c.SetDelay(msg.FloatArgs[0])
+		c.SetDelay(msg.FloatArgs[0], msg.IntArgs[0])
 	} else if int(msg.OperationType) == common.GetOperationCodes().SetLoss {
 		c.logger.Debug("Received SetLoss signal from controller", 0)
-		c.SetLoss(msg.FloatArgs[0])
+		c.SetLoss(msg.FloatArgs[0], msg.IntArgs[0])
 	} else if int(msg.OperationType) == common.GetOperationCodes().SetBandwidth {
 		c.logger.Debug("Received SetBandwidth signal from controller", 3)
-		c.SetBandwidth(msg.FloatArgs[0])
-	} else if int(msg.OperationType) == common.GetOperationCodes().SetPorts {
-		c.logger.Debug("Received SetPorts signal from controller", 3)
-		c.SetPorts(msg)
+		c.SetBandwidth(msg.FloatArgs[0], msg.IntArgs[0])
+	} else if int(msg.OperationType) == common.GetOperationCodes().Init {
+		c.logger.Debug("Received Init signal from controller", 3)
+		c.InitAttacker(msg)
 	} else {
 		panic("Unknown operation type")
 	}

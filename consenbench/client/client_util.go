@@ -11,7 +11,7 @@ import (
 
 // Set the replica name and the ports that the replica is listening on
 
-func (c *Client) SetPorts(msg *common.ControlMsg) {
+func (c *Client) InitAttacker(msg *common.ControlMsg) {
 	replica_name := msg.StringArgs[0]
 	ports := msg.StringArgs[1:]
 	if len(ports) == 0 {
@@ -20,7 +20,7 @@ func (c *Client) SetPorts(msg *common.ControlMsg) {
 	c.Attacker.Process_name = replica_name
 	c.Attacker.Ports_under_attack = ports
 	c.logger.Debug("Set replica name to "+replica_name+" and ports to "+fmt.Sprintf("%v", ports), 3)
-	c.Init()
+	c.Init(msg.Ips, ports, c.Attacker.Device)
 }
 
 // periodically send machine stats to the controller
@@ -53,7 +53,7 @@ func (c *Client) SendStats() {
 
 // runCommand runs the given command with the provided arguments
 
-func (c *Client) RunCommand(name string, arg []string) error {
+func RunCommand(name string, arg []string, logger *util.Logger) error {
 	cmd := exec.Command(name, arg...)
 	if cmd.Err != nil {
 		fmt.Println("Error running command " + name + " " + strings.Join(arg, " ") + " " + cmd.Err.Error() + "\n")
@@ -64,15 +64,15 @@ func (c *Client) RunCommand(name string, arg []string) error {
 		fmt.Println("Error running command " + name + " " + strings.Join(arg, " ") + " " + err.Error() + "\n")
 		return err
 	} else {
-		c.logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 3)
+		logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 3)
 	}
 	return nil
 }
 
 // Initialize the client
 
-func (c *Client) Init() {
-	c.NetInit()
+func (c *Client) Init(id_ip []string, ports_under_attack []string, device string) {
+	c.NetInit(id_ip, ports_under_attack, device)
 	go c.intern_slowdown()
 	c.logger.Debug("Initialized TC ", 3)
 }

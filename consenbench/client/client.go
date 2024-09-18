@@ -18,19 +18,11 @@ type ClientOptions struct {
 
 type ClientAttacker struct {
 	Logger             *util.Logger
-	NextNetEmCommands  [][]string // only for tc commands
-	Ports_under_attack []string   // ports under attack
-	Process_name       string     // process under attack
+	Ports_under_attack []string // ports under attack
+	Process_name       string   // process under attack
 	Device             string
-	Handle             string
-	Parent_band        string
-	DelayPackets       int
-	LossPackets        int
-	DuplicatePackets   int
-	ReorderPackets     int
-	CorruptPackets     int
-	Mu                 *sync.RWMutex
 	On_Off_Chan        chan bool
+	NetEmAttackers     map[int]NetEmAttacker
 }
 
 type Client struct {
@@ -52,18 +44,9 @@ func NewClient(Id int, options ClientOptions) *Client {
 	}
 
 	attacker := &ClientAttacker{
-		Logger:            c.logger,
-		NextNetEmCommands: [][]string{},
-		Device:            options.Device,
-		Handle:            "20",
-		Parent_band:       "1:2",
-		DelayPackets:      0,
-		LossPackets:       0,
-		DuplicatePackets:  0,
-		ReorderPackets:    0,
-		CorruptPackets:    0,
-		Mu:                &sync.RWMutex{},
-		On_Off_Chan:       make(chan bool, 1000),
+		Logger:      c.logger,
+		Device:      options.Device,
+		On_Off_Chan: make(chan bool, 1000),
 	}
 
 	c.Attacker = attacker
