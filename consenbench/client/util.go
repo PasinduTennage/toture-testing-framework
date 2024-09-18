@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 	"toture-test/consenbench/common"
@@ -70,12 +69,10 @@ func (c *Client) RunCommand(name string, arg []string) error {
 	return nil
 }
 
-// Initialize the netem client
+// Initialize the client
 
 func (c *Client) Init() {
-	c.RunCommand("tc", []string{"filter", "del", "dev", c.Options.Device})
-	c.RunCommand("tc", []string{"qdisc", "del", "dev", c.Options.Device, "root"})
-	c.RunCommand("tc", []string{"qdisc", "add", "dev", c.Options.Device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
+	c.NetInit()
 	go c.intern_slowdown()
 	c.logger.Debug("Initialized TC ", 3)
 }

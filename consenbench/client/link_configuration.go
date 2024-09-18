@@ -2,6 +2,12 @@ package client
 
 import "strconv"
 
+func (c *Client) NetInit() {
+	c.RunCommand("tc", []string{"filter", "del", "dev", c.Options.Device})
+	c.RunCommand("tc", []string{"qdisc", "del", "dev", c.Options.Device, "root"})
+	c.RunCommand("tc", []string{"qdisc", "add", "dev", c.Options.Device, "root", "handle", "1:", "prio", "bands", strconv.Itoa(5)})
+}
+
 // Execute the Pending commands
 
 func (c *Client) ExecuteLastNetEmCommands() error {
