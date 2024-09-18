@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"time"
+	"toture-test/consenbench/controller"
 	"toture-test/util"
 )
 
@@ -16,7 +17,7 @@ func NewNoopAttack(logger *util.Logger) *NoopAttack {
 	}
 }
 
-func (a *NoopAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle *LeaderOracle, duration int) {
+func (a *NoopAttack) Attack(nodes []*controller.AttackNode, links [][]*controller.AttackLink, oracle *controller.LeaderOracle, duration int) {
 	start_time := time.Now()
 
 	for time.Now().Sub(start_time).Seconds() < float64(duration-5) {

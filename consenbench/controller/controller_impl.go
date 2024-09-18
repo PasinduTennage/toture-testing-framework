@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	controller "toture-test/consenbench/controller/attack"
 	"toture-test/protocols"
 	consensus "toture-test/protocols/baxos"
 	"toture-test/util"
@@ -113,9 +114,9 @@ func (c *Controller) Run(protocol string) {
 	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c, c.logger, ports)
 	var attack_impl Attack
 	if c.Options.Attack == "basic" {
-		attack_impl = NewBasicAttack(c.logger)
+		attack_impl = controller.NewBasicAttack(c.logger)
 	} else if c.Options.Attack == "noop" {
-		attack_impl = NewNoopAttack(c.logger)
+		attack_impl = controller.NewNoopAttack(c.logger)
 	} else {
 		panic("Unknown attack")
 
