@@ -38,7 +38,7 @@ func (a *AttackLink) SetDelay(ms float32) {
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().SetDelay),
 				FloatArgs:     []float32{ms},
-				IntArgs:       make([]int32, a.Id_reciever),
+				IntArgs:       []int32{int32(a.Id_reciever)},
 			},
 		},
 		Peer: a.Id_sender,
@@ -53,7 +53,7 @@ func (a *AttackLink) SetLoss(l float32) {
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().SetLoss),
 				FloatArgs:     []float32{l},
-				IntArgs:       make([]int32, a.Id_reciever),
+				IntArgs:       []int32{int32(a.Id_reciever)},
 			},
 		},
 		Peer: a.Id_sender,
@@ -68,7 +68,7 @@ func (a *AttackLink) SetBandwidth(b float32) {
 			Obj: &common.ControlMsg{
 				OperationType: int32(common.GetOperationCodes().SetBandwidth),
 				FloatArgs:     []float32{b},
-				IntArgs:       make([]int32, a.Id_reciever),
+				IntArgs:       []int32{int32(a.Id_reciever)},
 			},
 		},
 		Peer: a.Id_sender,
