@@ -66,7 +66,7 @@ func (c *Client) Kill() {
 		v.ExecuteLastNetEmCommands()
 	}
 	c.CleanUp()
-	RunCommand("pkill", []string{"-f", c.Attacker.Process_name}, c.logger)
+	RunCommand("pkill", []string{"-KILL", "-f", c.Attacker.Process_name}, c.logger)
 	c.logger.Debug("killed consensus node", 3)
 }
 

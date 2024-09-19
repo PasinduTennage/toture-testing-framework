@@ -112,8 +112,8 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 	wg.Add(int(num_replicas + num_clients))
 	for i := 0; i < int(num_replicas+num_clients); i++ {
 		go func(j int) {
-			nodes[j].ExecCmd("pkill -f replica")
-			nodes[j].ExecCmd("pkill -f client")
+			nodes[j].ExecCmd("pkill -KILL -f replica")
+			nodes[j].ExecCmd("pkill -KILL -f client")
 			nodes[j].ExecCmd(fmt.Sprintf("rm -r %vbench/logs/", nodes[j].HomeDir))
 			nodes[j].ExecCmd(fmt.Sprintf("mkdir -p %vbench/logs/", nodes[j].HomeDir))
 			wg.Done()
@@ -163,8 +163,8 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 	wg1.Add(int(num_replicas + num_clients))
 	for j := 0; j < int(num_replicas+num_clients); j++ {
 		go func(i int) {
-			nodes[i].ExecCmd("pkill -f replica")
-			nodes[i].ExecCmd("pkill -f client")
+			nodes[i].ExecCmd("pkill -KILL -f replica")
+			nodes[i].ExecCmd("pkill -KILL -f client")
 			wg1.Done()
 		}(j)
 	}

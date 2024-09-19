@@ -92,7 +92,7 @@ func (n *Node) Shut_Down() string {
 func (n *Node) Start_Client(device string) error {
 
 	fmt.Printf("Starting client on node: %v\n", n.Id)
-	n.ExecCmd("pkill -f bench")
+	n.ExecCmd("pkill -KILL -f bench")
 
 	if n.Logger.DebugOn {
 		go n.ExecCmd(fmt.Sprintf("./bench/bench --node_config %vbench/ip.yaml --id %v --debug_on --debug_level %v --device %v ", n.HomeDir, n.Id, n.Logger.Level, device))
