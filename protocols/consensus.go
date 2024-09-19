@@ -11,6 +11,6 @@ type ConsensusOptions struct {
 
 type Consensus interface {
 	CopyConsensus(nodes []*common.Node) error
-	Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool, num_replicas_chan chan int, process_name_chan chan string)
-	ExtractOptions(string)
+	Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool)
+	ExtractOptions(string) ConsensusOptions
 }

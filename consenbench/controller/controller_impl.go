@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 	"toture-test/protocols"
@@ -95,22 +96,30 @@ func (c *Controller) Run(protocol string) {
 	} else {
 		panic("Unknown protocol")
 	}
-	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
+	options := protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
 
 	bootstrap_complete_chan := make(chan bool)
 	performance_output_chan := make(chan util.Performance)
-	num_replicas_chan := make(chan int)
-	process_name_chan := make(chan string)
 
-	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output_chan, bootstrap_complete_chan, num_replicas_chan, process_name_chan)
+	go protocol_impl.Bootstrap(c.Nodes, c.Options.AttackDuration, performance_output_chan, bootstrap_complete_chan)
 
-	num_replicas := <-num_replicas_chan
-	process_name_and_ports := <-process_name_chan
+	num_replicas, err := strconv.ParseInt(options.Option["num_replicas"], 10, 64)
+	if err != nil {
+		panic(err.Error() + " while parsing num_replicas")
 
-	process_name := strings.Split(process_name_and_ports, ",")[0]
-	ports := strings.Split(process_name_and_ports, ",")[1:]
+	}
+	process_name, ok := options.Option["process_name"]
+	if !ok {
+		panic("error while parsing process name")
 
-	attackNodes, attackLinks, leaderOracle := GetAttackObjects(num_replicas, process_name, c.Nodes, c, c.logger, ports)
+	}
+
+	ports, ok := options.Option["ports"]
+	if !ok {
+		panic(err.Error() + " while parsing ports")
+	}
+
+	attackNodes, attackLinks, leaderOracle := GetAttackObjects(int(num_replicas), process_name, c.Nodes, c, c.logger, strings.Split(ports, ","))
 	var attack_impl Attack
 	if c.Options.Attack == "basic" {
 		attack_impl = NewBasicAttack(c.logger)
@@ -142,7 +151,7 @@ func (c *Controller) Run(protocol string) {
 		fmt.Printf("%v: %v\n", key, value)
 	}
 
-	c.PrintStats(num_replicas)
+	c.PrintStats(int(num_replicas))
 
 	c.CloseClients()
 	fmt.Println("Closed the clients")

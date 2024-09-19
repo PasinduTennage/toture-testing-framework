@@ -84,7 +84,7 @@ func (ba *Baxos) CopyConsensus(nodes []*common.Node) error {
 	return nil
 }
 
-func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool, num_replicas_chan chan int, process_name_chan chan string) {
+func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.Performance, bootstrap_complete chan bool) {
 	replica_path := "/bench/replica"
 	ctl_path := "/bench/client"
 
@@ -108,11 +108,6 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 		panic(err.Error() + " while parsing arrival_rate")
 	}
 
-	ports, ok := ba.options.Option["ports"]
-	if !ok {
-		panic(err.Error() + " while parsing ports")
-	}
-
 	var wg sync.WaitGroup
 	wg.Add(int(num_replicas + num_clients))
 	for i := 0; i < int(num_replicas+num_clients); i++ {
@@ -127,8 +122,6 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 	wg.Wait()
 
 	fmt.Print("Killed all the replicas and clients\n")
-	num_replicas_chan <- int(num_replicas)
-	process_name_chan <- "replica" + "," + ports
 
 	for j := 0; j < int(num_replicas); j++ {
 		go func(i int) {
@@ -184,7 +177,7 @@ func (ba *Baxos) Bootstrap(nodes []*common.Node, duration int, result chan util.
 	result <- ba.GetPerformance(clientOutputs)
 }
 
-func (ba *Baxos) ExtractOptions(path string) {
+func (ba *Baxos) ExtractOptions(path string) protocols.ConsensusOptions {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Error reading file: %v", err)
@@ -204,6 +197,7 @@ func (ba *Baxos) ExtractOptions(path string) {
 	fmt.Printf("Baxos options:\n %v\n", options.Option)
 
 	ba.options = options
+	return options
 }
 
 func (ba *Baxos) GetPerformance(outputs []string) util.Performance {
