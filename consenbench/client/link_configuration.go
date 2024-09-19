@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"toture-test/util"
@@ -40,8 +41,8 @@ func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Por
 		c.Attacker.NetEmAttackers[id_int] = NetEmAttacker{
 			Id:                 id_int,
 			IP:                 ip,
-			Handle:             strconv.Itoa((i + 2) * 10),
-			ParentBand:         "1:" + strconv.Itoa((i + 2)),
+			Handle:             strconv.Itoa((i + 1) * 10),
+			ParentBand:         "1:" + strconv.Itoa((i + 1)),
 			NextNetEmCommands:  [][]string{},
 			DelayPackets:       0,
 			LossPackets:        0,
@@ -53,7 +54,8 @@ func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Por
 			Device:             device,
 		}
 
-		c.logger.Debug("Initialized net em attacker with id "+strconv.Itoa(id_int)+" and ip "+ip, 3)
+		debug := fmt.Sprintf("Initialized net em attacker with %v ", c.Attacker.NetEmAttackers[id_int])
+		c.logger.Debug(debug, 3)
 	}
 }
 
@@ -89,8 +91,8 @@ func (c *NetEmAttacker) SetNewHandler() error {
 func (c *NetEmAttacker) applyHandleToEachPort() {
 	i := 1
 	for _, port := range c.Ports_under_attack {
-		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", c.ParentBand, "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand}, c.logger)
-		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc" + "filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:", "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand})
+		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand}, c.logger)
+		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc" + "filter", "del", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand})
 		i++
 	}
 }
@@ -127,7 +129,7 @@ func (c *NetEmAttacker) SetBandwidth(f float32) {
 func (c *Client) SetDelay(f float32, i int32) {
 	node, ok := c.Attacker.NetEmAttackers[int(i)]
 	if !ok {
-		panic("Node not found")
+		panic("NetEm Handler not found")
 	}
 	node.SetDelay(f)
 }
@@ -135,7 +137,7 @@ func (c *Client) SetDelay(f float32, i int32) {
 func (c *Client) SetLoss(f float32, i int32) {
 	node, ok := c.Attacker.NetEmAttackers[int(i)]
 	if !ok {
-		panic("Node not found")
+		panic("NetEm handler not found")
 	}
 	node.SetLoss(f)
 }
