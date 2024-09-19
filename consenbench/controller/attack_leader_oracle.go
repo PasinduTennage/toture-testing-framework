@@ -19,41 +19,6 @@ func NewLeaderOracle(nodes []*common.Node, logger *util.Logger) *LeaderOracle {
 	}
 }
 
-func (l *LeaderOracle) GetLeader() int {
-	var leader *common.Node
-	var highestCPU, highestNetIn, highestNetOut float32
-
-	for _, node := range l.nodes {
-		cpu_usage, _, network_in, network_out := node.GetStats()
-
-		// Get the last 10 slots for each metric, or fewer if not enough data
-		cpuUsage := cpu_usage[Max(0, len(cpu_usage)-5):]
-		netIn := network_in[Max(0, len(network_in)-5):]
-		netOut := network_out[Max(0, len(network_out)-5):]
-
-		// Compute the sums of the last 10 slots
-		cpuSum := Sum(cpuUsage)
-		netInSum := Sum(netIn)
-		netOutSum := Sum(netOut)
-
-		// Check if this node has the highest values
-		if cpuSum > highestCPU || netInSum > highestNetIn && netOutSum > highestNetOut {
-			highestCPU = cpuSum
-			highestNetIn = netInSum
-			highestNetOut = netOutSum
-			leader = node
-		}
-	}
-
-	if leader == nil {
-		panic("No leader found")
-	}
-
-	l.logger.Debug(fmt.Sprintf("Likely Leader is %v, with cpu: %v, net-in: %v, net-out: %v", leader.Id, highestCPU, highestNetIn, highestNetOut), 3)
-
-	return leader.Id
-}
-
 // get the node ids of nodes which consume the most resources
 
 func (l *LeaderOracle) GetTopNLeaders() []int {

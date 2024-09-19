@@ -20,7 +20,6 @@ func (a *NoopAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle *
 	start_time := time.Now()
 
 	for time.Now().Sub(start_time).Seconds() < float64(duration-5) {
-		fmt.Printf("The leader is %v\n", oracle.GetLeader())
 		fmt.Printf("The leader order is %v\n", oracle.GetTopNLeaders())
 		time.Sleep(1 * time.Second)
 	}
