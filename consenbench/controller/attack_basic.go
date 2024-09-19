@@ -28,23 +28,24 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 		for _, node := range nodes {
 			node.Slowdown("false")
 		}
-		for i := 0; i < len(links); i++ {
-			for j := 0; j < len(links[i]); j++ {
-				if i == j {
-					continue
-				}
-				links[i][j].SetLoss(50)
-			}
-		}
-		time.Sleep(1 * time.Second)
-		for i := 0; i < len(links); i++ {
-			for j := 0; j < len(links[i]); j++ {
-				if i == j {
-					continue
-				}
-				links[i][j].SetLoss(0)
-			}
-		}
+		time.Sleep(5 * time.Second)
+		//for i := 0; i < len(links); i++ {
+		//	for j := 0; j < len(links[i]); j++ {
+		//		if i == j {
+		//			continue
+		//		}
+		//		links[i][j].SetLoss(50)
+		//	}
+		//}
+		//time.Sleep(1 * time.Second)
+		//for i := 0; i < len(links); i++ {
+		//	for j := 0; j < len(links[i]); j++ {
+		//		if i == j {
+		//			continue
+		//		}
+		//		links[i][j].SetLoss(0)
+		//	}
+		//}
 		fmt.Printf("The leader order is %v\n", oracle.GetTopNLeaders())
 	}
 
