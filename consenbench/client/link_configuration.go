@@ -137,7 +137,7 @@ func (c *Client) SetDelay(f float32, i int32) {
 func (c *Client) SetLoss(f float32, i int32) {
 	node, ok := c.Attacker.NetEmAttackers[int(i)]
 	if !ok {
-		panic("NetEm handler not found")
+		panic("NetEm handler not found" + strconv.Itoa(int(i)))
 	}
 	node.SetLoss(f)
 }
