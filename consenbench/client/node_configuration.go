@@ -9,8 +9,10 @@ func (c *Client) intern_slowdown() {
 		case on := <-c.Attacker.On_Off_Chan:
 			if on {
 				slowdown = true
+				c.logger.Debug("Slowdown starting inside thread", 3)
 			} else {
 				slowdown = false
+				c.logger.Debug("Slowdown stopping inside thread", 3)
 			}
 		default:
 			slowdown = slowdown
@@ -20,7 +22,7 @@ func (c *Client) intern_slowdown() {
 			c.Pause()
 			time.Sleep(100 * time.Millisecond)
 			c.Continue()
-			c.logger.Debug("Slowdowned inside thread", 3)
+			c.logger.Debug("Slowdowned running inside thread", 3)
 		}
 	}
 }
@@ -31,14 +33,14 @@ func (c *Client) SlowDown(action string) {
 	if action == "true" {
 		select {
 		case c.Attacker.On_Off_Chan <- true:
-			c.logger.Debug("slowdown", 3)
+			c.logger.Debug("slowdown notification sent", 3)
 		default:
 			c.logger.Debug("cannot invoke slowdown -- buffers filled", 3)
 		}
 	} else {
 		select {
 		case c.Attacker.On_Off_Chan <- false:
-			c.logger.Debug("Cancelled slowdown", 3)
+			c.logger.Debug("slowdown cancel notification sent", 3)
 		default:
 			c.logger.Debug("cannot cancel slowdown -- buffers filled", 3)
 		}
