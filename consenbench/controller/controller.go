@@ -105,6 +105,7 @@ func (c *Controller) PrintStats(num_replicas int) {
 	counter := 0
 	for i := 0; i < num_replicas; i++ {
 		cpu, mem, net_in, net_out := c.Nodes[i].GetStats()
+		c.logger.Debug(fmt.Sprintf("Node: %v -- CPU: %v, Memory: %v, Network In: %v, Network Out: %v", c.Nodes[i].Id, cpu, mem, net_in, net_out), 3)
 		cpu_usage += Sum(cpu)
 		mem_usage += Sum(mem)
 		network_in += Sum(net_in)

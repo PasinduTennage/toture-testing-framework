@@ -14,7 +14,7 @@ func Max(i int, i2 int) int {
 }
 
 func Sum(slice []float32) float32 {
-	var total float32
+	total := float32(0)
 	for _, val := range slice {
 		total += val
 	}
