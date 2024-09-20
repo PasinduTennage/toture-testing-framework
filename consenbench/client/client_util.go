@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -54,7 +55,9 @@ func (c *Client) SendStats() {
 // runCommand runs the given command with the provided arguments
 
 func RunCommand(name string, arg []string, logger *util.Logger) error {
-	cmd := exec.Command(name, arg...)
+	cmd := exec.Command("bash", "-c", name+" "+strings.Join(arg, " "))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if cmd.Err != nil {
 		fmt.Println("Error running command " + name + " " + strings.Join(arg, " ") + " " + cmd.Err.Error() + "\n")
 		return cmd.Err
