@@ -31,14 +31,14 @@ func (c *Client) NetInit(id_ip []string, ports_under_attack []string, device str
 }
 
 func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Ports_under_attack []string, device string) {
-	c.Attacker.NetEmAttackers = make(map[int]NetEmAttacker)
+	c.Attacker.NetEmAttackers = make(map[int]*NetEmAttacker)
 	for i := 0; i < len(id_ip); i++ {
 		id, ip := strings.Split(id_ip[i], ":")[0], strings.Split(id_ip[i], ":")[1]
 		id_int, err := strconv.Atoi(id)
 		if err != nil {
 			panic(err)
 		}
-		c.Attacker.NetEmAttackers[id_int] = NetEmAttacker{
+		c.Attacker.NetEmAttackers[id_int] = &NetEmAttacker{
 			Id:                 id_int,
 			IP:                 ip,
 			Handle:             strconv.Itoa((i + 1) * 10),
@@ -62,15 +62,15 @@ func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Por
 // Execute the Pending commands
 
 func (c *NetEmAttacker) ExecuteLastNetEmCommands() error {
-	var err error
+	c.logger.Debug(fmt.Sprintf("Executing last netem commands %v", c.NextNetEmCommands), 3)
 	for i := 0; i < len(c.NextNetEmCommands); i++ {
 		if len(c.NextNetEmCommands[i]) == 0 {
 			continue
 		}
-		err = RunCommand(c.NextNetEmCommands[i][0], c.NextNetEmCommands[i][1:], c.logger)
+		RunCommand(c.NextNetEmCommands[i][0], c.NextNetEmCommands[i][1:], c.logger)
 	}
 	c.NextNetEmCommands = [][]string{}
-	return err
+	return nil
 }
 
 func (c *NetEmAttacker) SetNewHandler() error {
@@ -89,11 +89,11 @@ func (c *NetEmAttacker) SetNewHandler() error {
 // apply the handle to each port
 
 func (c *NetEmAttacker) applyHandleToEachPort() {
-	i := 1
+
 	for _, port := range c.Ports_under_attack {
-		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0x0000/0xfff", "flowid", c.ParentBand}, c.logger)
-		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc" + "filter", "del", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "src", c.IP + "/32", "match", "ip", "dport", port, "0x0000/0xfff", "flowid", c.ParentBand})
-		i++
+		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "dst", c.IP + "/32", "match", "ip", "dport", port, "0xfff", "flowid", c.ParentBand}, c.logger)
+		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc", "filter", "del", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "dst", c.IP + "/32", "match", "ip", "dport", port, "0xfff", "flowid", c.ParentBand})
+
 	}
 }
 

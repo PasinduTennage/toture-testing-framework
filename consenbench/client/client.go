@@ -22,7 +22,7 @@ type ClientAttacker struct {
 	Process_name       string   // process under attack
 	Device             string
 	On_Off_Chan        chan bool
-	NetEmAttackers     map[int]NetEmAttacker
+	NetEmAttackers     map[int]*NetEmAttacker
 }
 
 type Client struct {
