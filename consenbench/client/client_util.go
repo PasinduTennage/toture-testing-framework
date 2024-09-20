@@ -2,9 +2,11 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 	"toture-test/consenbench/common"
 	"toture-test/util"
@@ -55,20 +57,49 @@ func (c *Client) SendStats() {
 // runCommand runs the given command with the provided arguments
 
 func RunCommand(name string, arg []string, logger *util.Logger) error {
+	// Create the command, running in a bash shell
 	cmd := exec.Command("bash", "-c", name+" "+strings.Join(arg, " "))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if cmd.Err != nil {
-		fmt.Println("Error running command " + name + " " + strings.Join(arg, " ") + " " + cmd.Err.Error() + "\n")
-		return cmd.Err
-	}
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println("Error running command " + name + " " + strings.Join(arg, " ") + " " + err.Error() + "\n")
+
+	// Create pipes for stdout and stderr
+	stdoutIn, _ := cmd.StdoutPipe()
+	stderrIn, _ := cmd.StderrPipe()
+
+	// WaitGroup to track completion of goroutines
+	var wg sync.WaitGroup
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
 		return err
-	} else {
-		logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 3)
 	}
+
+	// Add two routines (stdout and stderr)
+	wg.Add(2)
+
+	// Goroutine to handle stdout
+	go func() {
+		defer wg.Done()
+		io.Copy(os.Stdout, stdoutIn)
+	}()
+
+	// Goroutine to handle stderr
+	go func() {
+		defer wg.Done()
+		io.Copy(os.Stderr, stderrIn)
+	}()
+
+	// Wait for the command to complete
+	err := cmd.Wait()
+	if err != nil {
+		fmt.Println("Error running command:", err)
+		return err
+	}
+
+	// Wait for both stdout and stderr goroutines to finish
+	wg.Wait()
+
+	// Log success message
+	logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 3)
 	return nil
 }
 
