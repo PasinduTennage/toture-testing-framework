@@ -91,8 +91,8 @@ func (c *NetEmAttacker) SetNewHandler() error {
 func (c *NetEmAttacker) applyHandleToEachPort() {
 
 	for _, port := range c.Ports_under_attack {
-		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "dst", c.IP + "/32", "match", "ip", "dport", port, "0xfff", "flowid", c.ParentBand}, c.logger)
-		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc", "filter", "del", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "dst", c.IP + "/32", "match", "ip", "dport", port, "0xfff", "flowid", c.ParentBand})
+		RunCommand("tc", []string{"filter", "add", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "dst", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand}, c.logger)
+		c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc", "filter", "del", "dev", c.Device, "protocol", "ip", "parent", "1:0", "prio 1", "u32", "match", "ip", "dst", c.IP + "/32", "match", "ip", "dport", port, "0xffff", "flowid", c.ParentBand})
 
 	}
 }
