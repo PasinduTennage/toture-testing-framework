@@ -99,7 +99,7 @@ func RunCommand(name string, arg []string, logger *util.Logger) error {
 	wg.Wait()
 
 	// Log success message
-	logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 3)
+	logger.Debug("Success command "+name+" "+strings.Join(arg, " "), 5)
 	return nil
 }
 
