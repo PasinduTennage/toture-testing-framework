@@ -48,7 +48,7 @@ func (n *Node) ExecCmd(cmd string) string {
 	if err != nil {
 		fmt.Printf("FAILED to execute %v via SSH, err:%v, output:%v for node:%v\n\n", fmt.Sprintf("%v", sshCmd), err, string(output), n.Id)
 	} else {
-		n.Logger.Debug(fmt.Sprintf("SUCCESS %v via SSH, output: %v for node: %v\n\n", fmt.Sprintf("%v", sshCmd), string(output), n.Id), 0)
+		n.Logger.Debug(fmt.Sprintf("SUCCESS %v via SSH, output: %v for node: %v\n\n", fmt.Sprintf("%v", sshCmd), string(output), n.Id), 5)
 	}
 	return string(output)
 }
