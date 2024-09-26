@@ -118,7 +118,9 @@ func (ba *Ping) Bootstrap(nodes []*common.Node, duration int, result chan util.P
 
 	fmt.Print("Started all the replicas\n")
 
-	nodes[0].ExecCmd("." + stat_path + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[0].HomeDir))
+	go func() {
+		nodes[0].ExecCmd("." + stat_path + " --config " + fmt.Sprintf("%vbench/ip_config.yaml", nodes[0].HomeDir))
+	}()
 
 	fmt.Print("Bootstrap complete\n")
 	bootstrap_complete <- true
