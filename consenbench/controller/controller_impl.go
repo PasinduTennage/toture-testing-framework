@@ -8,7 +8,8 @@ import (
 	"sync"
 	"time"
 	"toture-test/protocols"
-	consensus "toture-test/protocols/baxos"
+	baxos "toture-test/protocols/baxos"
+	ping "toture-test/protocols/ping"
 	"toture-test/util"
 )
 
@@ -69,14 +70,22 @@ func (c *Controller) BootstrapClients() error {
 func (c *Controller) CopyConsensus(protocol string) {
 	c.InitiliazeNodes()
 	var protocol_impl protocols.Consensus
+	protocol_impl = c.GetProtocolImpl(protocol, protocol_impl)
+	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
+	protocol_impl.CopyConsensus(c.Nodes)
+}
+
+// as you add more protocols, you need to add the protocol here
+
+func (c *Controller) GetProtocolImpl(protocol string, protocol_impl protocols.Consensus) protocols.Consensus {
 	if protocol == "baxos" {
-		protocol_impl = consensus.NewBaxos(c.logger)
+		protocol_impl = baxos.NewBaxos(c.logger)
+	} else if protocol == "ping" {
+		protocol_impl = ping.NewPing(c.logger)
 	} else {
 		panic("Unknown protocol")
 	}
-	protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
-	protocol_impl.CopyConsensus(c.Nodes)
-
+	return protocol_impl
 }
 
 // run the controller
@@ -98,11 +107,7 @@ func (c *Controller) Run(protocol string) {
 	time.Sleep(10 * time.Second)
 
 	var protocol_impl protocols.Consensus
-	if protocol == "baxos" {
-		protocol_impl = consensus.NewBaxos(c.logger)
-	} else {
-		panic("Unknown protocol")
-	}
+	protocol_impl = c.GetProtocolImpl(protocol, protocol_impl)
 	options := protocol_impl.ExtractOptions("protocols/" + protocol + "/assets/options.yaml")
 
 	bootstrap_complete_chan := make(chan bool)
@@ -128,14 +133,7 @@ func (c *Controller) Run(protocol string) {
 
 	attackNodes, attackLinks, leaderOracle := GetAttackObjects(int(num_replicas), process_name, c.Nodes, c, c.logger, strings.Split(ports, ","))
 	var attack_impl Attack
-	if c.Options.Attack == "basic" {
-		attack_impl = NewBasicAttack(c.logger)
-	} else if c.Options.Attack == "noop" {
-		attack_impl = NewNoopAttack(c.logger)
-	} else {
-		panic("Unknown attack")
-
-	}
+	attack_impl = c.GetAttackImpl(attack_impl)
 
 	<-bootstrap_complete_chan // wait for the bootstrap to complete
 	fmt.Print("Bootstrap complete, starting attack from controller\n")
@@ -165,4 +163,16 @@ func (c *Controller) Run(protocol string) {
 	c.DownloadClientLogs()
 	fmt.Println("Downloaded the logs from the clients")
 	fmt.Println("test complete")
+}
+
+func (c *Controller) GetAttackImpl(attack_impl Attack) Attack {
+	if c.Options.Attack == "basic" {
+		attack_impl = NewBasicAttack(c.logger)
+	} else if c.Options.Attack == "noop" {
+		attack_impl = NewNoopAttack(c.logger)
+	} else {
+		panic("Unknown attack")
+
+	}
+	return attack_impl
 }
