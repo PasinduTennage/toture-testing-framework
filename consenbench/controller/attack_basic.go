@@ -23,12 +23,14 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 	for time.Now().Sub(start_time).Seconds() < float64(duration-5) {
 		links[0][1].SetDelay(200)
 		links[0][2].SetDelay(300)
-		links[0][3].SetDelay(300)
+		links[0][3].SetDelay(400)
+		links[0][4].SetDelay(500)
 
 		time.Sleep(3 * time.Second)
 		links[0][1].SetDelay(0)
 		links[0][2].SetDelay(0)
 		links[0][3].SetDelay(0)
+		links[0][4].SetDelay(0)
 
 		time.Sleep(1 * time.Second)
 		//fmt.Printf("The leader order is %v\n", oracle.GetTopNLeaders())
