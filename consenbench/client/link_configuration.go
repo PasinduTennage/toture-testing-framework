@@ -18,6 +18,7 @@ type NetEmAttacker struct {
 	DuplicatePackets   int
 	ReorderPackets     int
 	CorruptPackets     int
+	Rate               int
 	logger             *util.Logger
 	Ports_under_attack []string
 	Device             string
@@ -50,6 +51,7 @@ func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Por
 			DuplicatePackets:   0,
 			ReorderPackets:     0,
 			CorruptPackets:     0,
+			Rate:               10000000,
 			logger:             logger,
 			Ports_under_attack: Ports_under_attack,
 			Device:             device,
@@ -81,9 +83,9 @@ func (c *NetEmAttacker) SetNewHandler() error {
 		defer c.decrementDelay()
 	}
 
-	err := RunCommand("tc", []string{"qdisc", "add", "dev", c.Device, "parent", c.ParentBand, "handle", c.Handle + ":", "netem", "delay", strconv.Itoa(c.DelayPackets) + "ms", "loss", strconv.Itoa(c.LossPackets) + "%", "duplicate", strconv.Itoa(c.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.CorruptPackets) + "%"}, c.logger)
+	err := RunCommand("tc", []string{"qdisc", "add", "dev", c.Device, "parent", c.ParentBand, "handle", c.Handle + ":", "netem", "delay", strconv.Itoa(c.DelayPackets) + "ms", "loss", strconv.Itoa(c.LossPackets) + "%", "duplicate", strconv.Itoa(c.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.CorruptPackets) + "%", "rate", strconv.Itoa(c.Rate) + "kbit"}, c.logger)
 	c.applyHandleToEachPort()
-	c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc", "qdisc", "del", "dev", c.Device, "parent", c.ParentBand, "handle", c.Handle + ":", "netem", "delay", strconv.Itoa(c.DelayPackets) + "ms", "loss", strconv.Itoa(c.LossPackets) + "%", "duplicate", strconv.Itoa(c.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.CorruptPackets) + "%"})
+	c.NextNetEmCommands = append(c.NextNetEmCommands, []string{"tc", "qdisc", "del", "dev", c.Device, "parent", c.ParentBand, "handle", c.Handle + ":", "netem", "delay", strconv.Itoa(c.DelayPackets) + "ms", "loss", strconv.Itoa(c.LossPackets) + "%", "duplicate", strconv.Itoa(c.DuplicatePackets) + "%", "reorder", strconv.Itoa(c.ReorderPackets) + "%", "50%", "corrupt", strconv.Itoa(c.CorruptPackets) + "%", "rate", strconv.Itoa(c.Rate) + "kbit"})
 	c.logger.Debug("Set new net em handler", 3)
 	return err
 }
@@ -124,8 +126,10 @@ func (c *NetEmAttacker) SetLoss(f float32) {
 // set the bandwidth
 
 func (c *NetEmAttacker) SetBandwidth(f float32) {
-	// TODO
-	panic("Not implemented")
+	c.ExecuteLastNetEmCommands()
+	c.Rate = int(f)
+	c.logger.Debug("set bandwidth", 3)
+	c.SetNewHandler()
 }
 
 func (c *Client) SetDelay(f float32, i int32) {
