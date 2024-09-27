@@ -41,8 +41,8 @@ func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Por
 		c.Attacker.NetEmAttackers[id_int] = &NetEmAttacker{
 			Id:                 id_int,
 			IP:                 ip,
-			Handle:             strconv.Itoa((i + 1) * 10),
-			ParentBand:         "1:" + strconv.Itoa((i + 1)),
+			Handle:             strconv.Itoa((id_int) * 10),
+			ParentBand:         "1:" + strconv.Itoa((id_int)),
 			NextNetEmCommands:  [][]string{},
 			DelayPackets:       0,
 			LossPackets:        0,
