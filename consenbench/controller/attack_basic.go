@@ -21,14 +21,14 @@ func (a *BasicAttack) Attack(nodes []*AttackNode, links [][]*AttackLink, oracle 
 	start_time := time.Now()
 
 	for time.Now().Sub(start_time).Seconds() < float64(duration-5) {
-		links[0][1].SetLoss(50)
+		links[0][1].SetDelay(200)
 
 		time.Sleep(3 * time.Second)
-		links[0][1].SetLoss(0)
+		links[0][1].SetDelay(0)
 
 		time.Sleep(1 * time.Second)
-		fmt.Printf("The leader order is %v\n", oracle.GetTopNLeaders())
-		time.Sleep(1 * time.Second)
+		//fmt.Printf("The leader order is %v\n", oracle.GetTopNLeaders())
+		//time.Sleep(1 * time.Second)
 	}
 
 	fmt.Print("Basic attack complete\n")
