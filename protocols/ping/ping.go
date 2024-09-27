@@ -125,7 +125,7 @@ func (ba *Ping) Bootstrap(nodes []*common.Node, duration int, result chan util.P
 	fmt.Print("Bootstrap complete\n")
 	bootstrap_complete <- true
 
-	time.Sleep(time.Duration(2*duration) * time.Second)
+	time.Sleep(time.Duration(duration) * time.Second)
 
 	var wg1 sync.WaitGroup
 	wg1.Add(int(num_replicas))
