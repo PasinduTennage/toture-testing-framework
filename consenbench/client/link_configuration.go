@@ -55,7 +55,7 @@ func (c *Client) InitializeNetEmClients(id_ip []string, logger *util.Logger, Por
 		}
 
 		debug := fmt.Sprintf("Initialized net em attacker with %v ", c.Attacker.NetEmAttackers[id_int])
-		c.logger.Debug(debug, 3)
+		c.logger.Debug(debug, 5)
 	}
 }
 
